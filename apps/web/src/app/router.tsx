@@ -1,6 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RequireAuth } from './guards/RequireAuth';
+import { AppShell } from './AppShell';
 import { LoginPage } from '../features/auth/LoginPage';
 import { useActiveShift } from '../features/shift';
 import { strings } from '../shared/strings/id';
@@ -15,6 +16,14 @@ const ChangePasswordPage = lazy(() =>
 );
 const OrdersPage = lazy(() =>
   import('../features/orders/OrdersPage').then((module) => ({ default: module.OrdersPage })),
+);
+const OrderDetailPage = lazy(() =>
+  import('../features/orders/OrderDetailPage').then((module) => ({
+    default: module.OrderDetailPage,
+  })),
+);
+const HistoryPage = lazy(() =>
+  import('../features/orders/HistoryPage').then((module) => ({ default: module.HistoryPage })),
 );
 const InventoryPage = lazy(() =>
   import('../features/inventory/InventoryPage').then((module) => ({
@@ -40,6 +49,23 @@ const PaymentAccountsPage = lazy(() =>
 const PosPage = lazy(() =>
   import('../features/pos/PosPage').then((module) => ({ default: module.PosPage })),
 );
+const OpenBillPage = lazy(() =>
+  import('../features/pos/OpenBillPage').then((module) => ({ default: module.OpenBillPage })),
+);
+
+function suspended(element: ReactNode): JSX.Element {
+  return (
+    <Suspense
+      fallback={
+        <main className="page-state" role="status">
+          {strings.app.loading}
+        </main>
+      }
+    >
+      {element}
+    </Suspense>
+  );
+}
 
 function HomeRedirect() {
   const shift = useActiveShift();
@@ -77,153 +103,24 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <RequireAuth>
-        <HomeRedirect />
+        <AppShell />
       </RequireAuth>
     ),
-  },
-  {
-    path: '/pos',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <PosPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/shift',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <ShiftPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/account/password',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <ChangePasswordPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/orders',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <OrdersPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/inventory',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <InventoryPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/menu',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <MenuPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/vouchers',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <VouchersPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/payment-verification',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <PaymentVerificationPage />
-        </Suspense>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/payment-accounts',
-    element: (
-      <RequireAuth>
-        <Suspense
-          fallback={
-            <main className="page-state" role="status">
-              {strings.app.loading}
-            </main>
-          }
-        >
-          <PaymentAccountsPage />
-        </Suspense>
-      </RequireAuth>
-    ),
+    children: [
+      { index: true, element: <HomeRedirect /> },
+      { path: 'pos', element: suspended(<PosPage />) },
+      { path: 'pos/open-bill/:orderId', element: suspended(<OpenBillPage />) },
+      { path: 'shift', element: suspended(<ShiftPage />) },
+      { path: 'account/password', element: suspended(<ChangePasswordPage />) },
+      { path: 'orders', element: suspended(<OrdersPage />) },
+      { path: 'orders/:orderId', element: suspended(<OrderDetailPage />) },
+      { path: 'history', element: suspended(<HistoryPage />) },
+      { path: 'inventory', element: suspended(<InventoryPage />) },
+      { path: 'menu', element: suspended(<MenuPage />) },
+      { path: 'vouchers', element: suspended(<VouchersPage />) },
+      { path: 'payment-verification', element: suspended(<PaymentVerificationPage />) },
+      { path: 'payment-accounts', element: suspended(<PaymentAccountsPage />) },
+    ],
   },
   {
     path: '/403',

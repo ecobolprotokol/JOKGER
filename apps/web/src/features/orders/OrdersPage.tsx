@@ -151,7 +151,13 @@ export function OrdersPage() {
                   return (
                     <article className="order-card" key={order.id}>
                       <div className="order-card__topline">
-                        <strong className="order-number-small">{order.order_no}</strong>
+                        <Link
+                          className="order-number-small order-card__detail-link"
+                          to={`/orders/${order.id}`}
+                          aria-label={`${strings.orders.viewDetails} ${order.order_no}`}
+                        >
+                          {order.order_no}
+                        </Link>
                         <OrderStatusBadge status={order.status} />
                       </div>
                       <div className="order-card__details">

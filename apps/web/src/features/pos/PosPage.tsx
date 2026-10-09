@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useMenuCatalog, type MenuItem } from '../menu';
 import { useStoreSettings } from '../settings';
@@ -37,6 +37,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 export function PosPage() {
+  const navigate = useNavigate();
   const menuQuery = useMenuCatalog();
   const settingsQuery = useStoreSettings();
   const accountsQuery = useActivePaymentAccounts();
@@ -189,6 +190,33 @@ export function PosPage() {
           } else {
             toast.error(getErrorMessage(error));
           }
+        },
+      },
+    );
+  }
+
+  function openBill(): void {
+    if (!cart.lines.length || !online || createOrder.isPending) return;
+    createOrder.mutate(
+      {
+        clientRef: cart.ensureClientRef(),
+        orderType: cart.orderType,
+        billMode: 'open',
+        voucherCode: null,
+        tableLabel: cart.tableLabel,
+        customerName: cart.customerName,
+        items: cart.lines.map((line) => ({
+          menu_item_id: line.menuItemId,
+          qty: line.qty,
+          modifier_option_ids: line.modifierOptionIds,
+          note: line.note,
+        })),
+        payments: [],
+      },
+      {
+        onSuccess: (order) => {
+          cart.clear();
+          navigate(`/pos/open-bill/${order.id}`);
         },
       },
     );
@@ -511,12 +539,24 @@ export function PosPage() {
             </button>
             <button
               className="button button--primary"
-              disabled={cart.lines.length === 0 || voucherBlocksCheckout}
+              disabled={cart.lines.length === 0 || voucherBlocksCheckout || createOrder.isPending}
               onClick={() => setPaymentOpen(true)}
             >
               {strings.pos.pay}
             </button>
+            <button
+              className="button button--secondary"
+              disabled={!cart.lines.length || !online || createOrder.isPending}
+              onClick={openBill}
+            >
+              {strings.pos.openBill}
+            </button>
           </div>
+          {createOrder.isError && !paymentOpen && (
+            <p className="form-alert" role="alert">
+              {getErrorMessage(createOrder.error)}
+            </p>
+          )}
         </aside>
       </div>
 

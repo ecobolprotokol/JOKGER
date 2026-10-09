@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { cancelOrder, changeOrderStatus, readRecentOrders, returnCompletedOrder } from './api';
+import {
+  cancelOrder,
+  changeOrderStatus,
+  readOrderDetail,
+  readRecentOrders,
+  returnCompletedOrder,
+} from './api';
 import type { OrderStatus } from './api';
 import { useConnectionStore } from '../../shared/stores/connection';
 
@@ -15,6 +21,20 @@ export function useRecentOrders() {
       return result.data;
     },
     refetchInterval: realtime === 'degraded' ? 30_000 : false,
+  });
+}
+
+export function useOrderDetail(orderId: string, includeStatusHistory: boolean) {
+  return useQuery({
+    queryKey: ['order', orderId, { includeStatusHistory }],
+    enabled: Boolean(orderId),
+    queryFn: async () => {
+      const result = await readOrderDetail(orderId, includeStatusHistory);
+      if (!result.ok) {
+        throw result.error;
+      }
+      return result.data;
+    },
   });
 }
 
