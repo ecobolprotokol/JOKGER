@@ -66,7 +66,7 @@ select is(
   'asal status selesai tetap tercatat saat retur'
 );
 select is(
-  (select sum(amount) from public.payments
+  (select sum(amount)::bigint from public.payments
    where order_id = (select id from public.orders where order_no like '%0001') and is_refund),
   -10000::bigint,
   'retur mencatat refund tunai bernilai negatif'
