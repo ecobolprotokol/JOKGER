@@ -118,9 +118,9 @@ describe('receipt printer', () => {
     const gatt = { connect: vi.fn().mockResolvedValue(server), disconnect: vi.fn() };
     const bluetooth = { requestDevice: vi.fn().mockResolvedValue({ gatt }) };
     Object.defineProperty(navigator, 'bluetooth', { configurable: true, value: bluetooth });
-    vi.spyOn(window, 'setTimeout').mockImplementation((handler: TimerHandler) => {
-      if (typeof handler === 'function') handler();
-      return 1;
+    vi.spyOn(window, 'setTimeout').mockImplementation((handler) => {
+      handler();
+      return setTimeout(() => undefined, 0);
     });
     const longReceipt: ReceiptData = {
       ...receipt,
