@@ -1,6 +1,6 @@
 begin;
 
-select plan(14);
+select plan(15);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 values ('00000000-0000-4000-8000-000000002101', 'authenticated', 'authenticated', 'report-admin@test.local', '', now());
@@ -39,6 +39,14 @@ set local role authenticated;
 select is(
   (public.get_sales_report('2026-01-02', '2026-01-02')->'summary'->>'totalSales')::bigint,
   8000::bigint, 'total laporan sama dengan pembayaran verified termasuk refund negatif'
+);
+select ok(
+  public.get_sales_report('2026-01-02', '2026-01-02') ?& array['summary', 'daily', 'hourly', 'byMethod', 'byCategory', 'byItem', 'byVoucher']
+    and public.get_sales_report('2026-01-02', '2026-01-02')->'summary' ?& array[
+      'totalSales', 'totalTransactions', 'avgTransaction', 'totalRefund', 'totalDiscount',
+      'totalService', 'totalTax', 'totalVoid'
+    ],
+  'laporan memiliki nama key kontrak yang tepat'
 );
 select is(
   (public.get_sales_report('2026-01-02', '2026-01-02')->'summary'->>'totalTransactions')::bigint,
