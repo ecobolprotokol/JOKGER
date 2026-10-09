@@ -14,7 +14,7 @@
     "format:check": "prettier --check package.json .prettierrc.json README.md eslint.config.js commitlint.config.js vercel.json .github/workflows/ci.yml \"apps/**/*.{json,js,ts,tsx,css,html}\" \"api/**/*.{json,ts}\"",
     "typecheck": "corepack pnpm@9.15.9 --filter @jokger/web typecheck && corepack pnpm@9.15.9 api:typecheck",
     "test": "corepack pnpm@9.15.9 test:unit && corepack pnpm@9.15.9 test:e2e",
-    "test:unit": "corepack pnpm@9.15.9 --filter @jokger/web test:unit",
+    "test:unit": "corepack pnpm@9.15.9 --filter @jokger/web test:unit && corepack pnpm@9.15.9 exec vitest run api/admin/create-staff.test.ts",
     "test:e2e": "corepack pnpm@9.15.9 --filter @jokger/web test:e2e",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
