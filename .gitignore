@@ -9,3 +9,7 @@ test-results/
 !.env.example
 .vercel/
 .DS_Store
+apps/web/tsconfig.tsbuildinfo
+supabase/.temp/
+apps/web/test-results/
+apps/web/playwright-report/
