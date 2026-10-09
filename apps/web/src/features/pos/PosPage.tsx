@@ -5,6 +5,7 @@ import { useMenuCatalog, type MenuItem } from '../menu';
 import { useStoreSettings } from '../settings';
 import { useActivePaymentAccounts } from '../payment-accounts';
 import { useActiveShift } from '../shift';
+import { useValidateVoucher, useVoucherPreview } from '../vouchers';
 import { useCreateOrder } from './hooks';
 import { calculateLineTotal, calculateTotals } from './logic';
 import { ModifierPicker } from './components/ModifierPicker';
@@ -41,6 +42,7 @@ export function PosPage() {
   const accountsQuery = useActivePaymentAccounts();
   const shiftQuery = useActiveShift();
   const createOrder = useCreateOrder();
+  const validateVoucher = useValidateVoucher();
   const cart = useCartStore();
   const online = useConnectionStore((state) => state.online);
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -52,9 +54,12 @@ export function PosPage() {
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | 'ewallet'>('cash');
   const [paymentAccountId, setPaymentAccountId] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
+  const [voucherInput, setVoucherInput] = useState(cart.voucherCode ?? '');
   const [createdOrder, setCreatedOrder] = useState<{ orderNo: string; total: number } | null>(null);
   const menu = menuQuery.data;
   const settings = settingsQuery.data;
+  const subtotal = calculateTotals(cart.lines, 0, 0, 0, 'none').subtotal;
+  const voucherPreview = useVoucherPreview(cart.voucherCode, subtotal);
 
   if (shiftQuery.isSuccess && !shiftQuery.data) {
     return <Navigate to="/shift" replace />;
@@ -83,7 +88,7 @@ export function PosPage() {
 
   const totals = calculateTotals(
     cart.lines,
-    0,
+    voucherPreview.data?.discount ?? 0,
     settings.service_percent,
     settings.tax_percent,
     settings.rounding_rule,
@@ -108,6 +113,9 @@ export function PosPage() {
           accountChoices.some((account) => account.id === paymentAccountId) && referenceIsValid,
         );
   const canPay = cart.lines.length > 0 && paymentInputIsValid && online;
+  const voucherBlocksCheckout = Boolean(
+    cart.voucherCode && (voucherPreview.isPending || voucherPreview.isError),
+  );
 
   function addToCart(
     item: MenuItem,
@@ -130,7 +138,7 @@ export function PosPage() {
   }
 
   function checkout(): void {
-    if (!canPay || !online) {
+    if (!canPay || !online || voucherBlocksCheckout) {
       return;
     }
     const clientRef = cart.ensureClientRef();
@@ -173,6 +181,9 @@ export function PosPage() {
           if (code === 'PAYMENT_EXCEEDS_OUTSTANDING' || code === 'CASH_RECEIVED_INSUFFICIENT') {
             toast.error(strings.pos.priceChanged);
             void menuQuery.refetch();
+          } else if (code?.startsWith('VOUCHER_')) {
+            cart.setVoucher(null);
+            toast.error(getErrorMessage(error));
           } else if (code === 'REQUEST_TIMEOUT') {
             toast.error(strings.errors.REQUEST_TIMEOUT);
           } else {
@@ -217,6 +228,9 @@ export function PosPage() {
           </Link>
           <Link className="button button--secondary" to="/payment-accounts">
             {strings.paymentAccounts.title}
+          </Link>
+          <Link className="button button--secondary" to="/account/password">
+            {strings.auth.passwordChangeTitle}
           </Link>
         </div>
       </header>
@@ -347,6 +361,57 @@ export function PosPage() {
               />
             </label>
           )}
+          <div className="cart-voucher">
+            <label className="compact-field" htmlFor="pos-voucher-code">
+              <span>{strings.pos.voucher}</span>
+              <input
+                id="pos-voucher-code"
+                maxLength={32}
+                value={voucherInput}
+                disabled={Boolean(cart.voucherCode)}
+                onChange={(event) => setVoucherInput(event.target.value.toUpperCase())}
+              />
+            </label>
+            {cart.voucherCode ? (
+              <div className="cart-voucher__applied">
+                <span>{cart.voucherCode}</span>
+                {voucherPreview.isPending ? (
+                  <span role="status">{strings.app.loading}</span>
+                ) : voucherPreview.isError ? (
+                  <span role="alert">{getErrorMessage(voucherPreview.error)}</span>
+                ) : (
+                  <Money value={-(voucherPreview.data?.discount ?? 0)} signed />
+                )}
+                <button
+                  className="button button--ghost"
+                  onClick={() => {
+                    cart.setVoucher(null);
+                    validateVoucher.reset();
+                  }}
+                >
+                  {strings.pos.removeVoucher}
+                </button>
+              </div>
+            ) : (
+              <button
+                className="button button--secondary"
+                disabled={!online || !voucherInput.trim() || validateVoucher.isPending}
+                onClick={() =>
+                  validateVoucher.mutate(
+                    { code: voucherInput.trim(), subtotal },
+                    { onSuccess: (voucher) => cart.setVoucher(voucher.code) },
+                  )
+                }
+              >
+                {validateVoucher.isPending ? strings.app.loading : strings.pos.applyVoucher}
+              </button>
+            )}
+            {validateVoucher.isError && !cart.voucherCode && (
+              <p className="form-alert" role="alert">
+                {getErrorMessage(validateVoucher.error)}
+              </p>
+            )}
+          </div>
           {cart.lines.length === 0 ? (
             <div className="cart-empty">
               <p>{strings.pos.emptyCart}</p>
@@ -405,6 +470,14 @@ export function PosPage() {
               <span>{strings.pos.subtotal}</span>
               <Money value={totals.subtotal} />
             </div>
+            {totals.discount > 0 && (
+              <div>
+                <span>
+                  {strings.pos.voucherDiscount} · {cart.voucherCode}
+                </span>
+                <Money value={-totals.discount} signed />
+              </div>
+            )}
             {totals.serviceAmount > 0 && (
               <div>
                 <span>{strings.pos.serviceFee}</span>
@@ -438,7 +511,7 @@ export function PosPage() {
             </button>
             <button
               className="button button--primary"
-              disabled={cart.lines.length === 0}
+              disabled={cart.lines.length === 0 || voucherBlocksCheckout}
               onClick={() => setPaymentOpen(true)}
             >
               {strings.pos.pay}
@@ -591,7 +664,7 @@ export function PosPage() {
           )}
           <button
             className="button button--primary payment-submit"
-            disabled={!canPay || createOrder.isPending}
+            disabled={!canPay || voucherBlocksCheckout || createOrder.isPending}
             onClick={checkout}
           >
             {createOrder.isPending ? strings.pos.processingPayment : strings.pos.finishPayment}

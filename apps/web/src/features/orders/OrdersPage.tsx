@@ -1,6 +1,14 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { useCancelOrder, useRecentOrders, useChangeOrderStatus, type OrderStatus } from './index';
+import {
+  useCancelOrder,
+  useRecentOrders,
+  useChangeOrderStatus,
+  useReturnCompletedOrder,
+  type OrderStatus,
+} from './index';
+import { useProfile } from '../auth';
 import { OrderStatusBadge } from '../../shared/components/OrderStatusBadge';
 import { Money } from '../../shared/components/Money';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
@@ -29,8 +37,11 @@ export function OrdersPage() {
   const orders = useRecentOrders();
   const updateStatus = useChangeOrderStatus();
   const cancelMutation = useCancelOrder();
+  const returnMutation = useReturnCompletedOrder();
+  const profile = useProfile();
   const [tab, setTab] = useState<'all' | OrderStatus>('all');
   const [cancelTarget, setCancelTarget] = useState<{ id: string; orderNo: string } | null>(null);
+  const [returnTarget, setReturnTarget] = useState<{ id: string; orderNo: string } | null>(null);
   const realtime = useConnectionStore((state) => state.realtime);
   const online = useConnectionStore((state) => state.online);
   useRealtime({
@@ -199,6 +210,15 @@ export function OrdersPage() {
                           {strings.orders.cancel}
                         </button>
                       )}
+                      {order.status === 'completed' && profile.data?.role === 'super_admin' && (
+                        <button
+                          className="button button--secondary order-card__action"
+                          disabled={!online || returnMutation.isPending}
+                          onClick={() => setReturnTarget({ id: order.id, orderNo: order.order_no })}
+                        >
+                          {strings.orders.return}
+                        </button>
+                      )}
                       {updateStatus.isError && (
                         <p className="form-alert" role="alert">
                           {errorText(updateStatus.error)}
@@ -207,6 +227,11 @@ export function OrdersPage() {
                       {cancelMutation.isError && (
                         <p className="form-alert" role="alert">
                           {errorText(cancelMutation.error)}
+                        </p>
+                      )}
+                      {returnMutation.isError && (
+                        <p className="form-alert" role="alert">
+                          {errorText(returnMutation.error)}
                         </p>
                       )}
                     </article>
@@ -227,6 +252,21 @@ export function OrdersPage() {
           onConfirm={async (reason) => {
             await cancelMutation.mutateAsync({ orderId: cancelTarget.id, reason: reason ?? '' });
             setCancelTarget(null);
+          }}
+        />
+      )}
+      {returnTarget && (
+        <ConfirmAction
+          title={`${strings.orders.returnTitle} ${returnTarget.orderNo}?`}
+          description={strings.orders.returnDescription}
+          confirmLabel={strings.orders.return}
+          tone="danger"
+          requireReason
+          requireTypedText={returnTarget.orderNo}
+          onConfirm={async (reason) => {
+            await returnMutation.mutateAsync({ orderId: returnTarget.id, reason: reason ?? '' });
+            toast.success(strings.orders.returned);
+            setReturnTarget(null);
           }}
         />
       )}

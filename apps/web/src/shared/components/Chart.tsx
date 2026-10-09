@@ -93,7 +93,7 @@ export function Chart({
 
     series.forEach((s, si) => {
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      const color = s.color || colors[si];
+      const color = s.color || colors[si] || 'var(--brand)';
       let d = '';
 
       s.data.forEach((value, i) => {
@@ -140,7 +140,7 @@ export function Chart({
       dot.setAttribute('cx', '6');
       dot.setAttribute('cy', '6');
       dot.setAttribute('r', '5');
-      dot.setAttribute('fill', s.color || colors[i]);
+      dot.setAttribute('fill', s.color || colors[i] || 'var(--brand)');
       gLegend.appendChild(dot);
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', '16');
@@ -157,7 +157,7 @@ export function Chart({
   return (
     <div className="chart-container" ref={containerRef}>
       <svg ref={svgRef} className="chart-svg" role="img" aria-label="Grafik data" />
-      <table className="chart-table visually-hidden" aria-hidden="true">
+      <table className="chart-table visually-hidden">
         <thead>
           <tr>
             <th>Periode</th>
@@ -171,7 +171,7 @@ export function Chart({
             <tr key={label}>
               <td>{label}</td>
               {series.map((s) => (
-                <td key={s.label}>{formatValue(s.data[i])}</td>
+                <td key={s.label}>{s.data[i] === undefined ? '—' : formatValue(s.data[i] ?? 0)}</td>
               ))}
             </tr>
           ))}

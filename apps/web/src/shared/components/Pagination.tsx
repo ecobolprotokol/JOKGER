@@ -10,7 +10,7 @@ export function Pagination({
   pageSize: number;
   total: number;
   onChange: (page: number, pageSize: number) => void;
-}): JSX.Element {
+}): JSX.Element | null {
   const totalPages = Math.ceil(total / pageSize);
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);

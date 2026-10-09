@@ -8,6 +8,11 @@ import { strings } from '../shared/strings/id';
 const ShiftPage = lazy(() =>
   import('../features/shift/ShiftPage').then((module) => ({ default: module.ShiftPage })),
 );
+const ChangePasswordPage = lazy(() =>
+  import('../features/auth/ChangePasswordPage').then((module) => ({
+    default: module.ChangePasswordPage,
+  })),
+);
 const OrdersPage = lazy(() =>
   import('../features/orders/OrdersPage').then((module) => ({ default: module.OrdersPage })),
 );
@@ -15,6 +20,12 @@ const InventoryPage = lazy(() =>
   import('../features/inventory/InventoryPage').then((module) => ({
     default: module.InventoryPage,
   })),
+);
+const MenuPage = lazy(() =>
+  import('../features/menu/MenuPage').then((module) => ({ default: module.MenuPage })),
+);
+const VouchersPage = lazy(() =>
+  import('../features/vouchers/VouchersPage').then((module) => ({ default: module.VouchersPage })),
 );
 const PaymentVerificationPage = lazy(() =>
   import('../features/payment-verification/PaymentVerificationPage').then((module) => ({
@@ -103,6 +114,22 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/account/password',
+    element: (
+      <RequireAuth>
+        <Suspense
+          fallback={
+            <main className="page-state" role="status">
+              {strings.app.loading}
+            </main>
+          }
+        >
+          <ChangePasswordPage />
+        </Suspense>
+      </RequireAuth>
+    ),
+  },
+  {
     path: '/orders',
     element: (
       <RequireAuth>
@@ -130,6 +157,38 @@ export const router = createBrowserRouter([
           }
         >
           <InventoryPage />
+        </Suspense>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/menu',
+    element: (
+      <RequireAuth>
+        <Suspense
+          fallback={
+            <main className="page-state" role="status">
+              {strings.app.loading}
+            </main>
+          }
+        >
+          <MenuPage />
+        </Suspense>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/vouchers',
+    element: (
+      <RequireAuth>
+        <Suspense
+          fallback={
+            <main className="page-state" role="status">
+              {strings.app.loading}
+            </main>
+          }
+        >
+          <VouchersPage />
         </Suspense>
       </RequireAuth>
     ),

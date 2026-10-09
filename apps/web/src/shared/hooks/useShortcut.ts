@@ -23,7 +23,7 @@ function keysMatch(event: KeyboardEvent, keys: string[]): boolean {
 export function useShortcut(keys: string[], handler: ShortcutHandler, description?: string): void {
   useEffect(() => {
     const id = Math.random().toString(36).slice(2);
-    const entry: ShortcutEntry = { keys, handler, description };
+    const entry: ShortcutEntry = description ? { keys, handler, description } : { keys, handler };
 
     if (!registeredShortcuts.has(id)) {
       registeredShortcuts.set(id, []);
@@ -50,7 +50,7 @@ function handleKeyDown(event: KeyboardEvent): void {
     activeElement instanceof HTMLInputElement ||
     activeElement instanceof HTMLTextAreaElement ||
     activeElement instanceof HTMLSelectElement ||
-    activeElement?.isContentEditable;
+    (activeElement instanceof HTMLElement && activeElement.isContentEditable);
 
   for (const entries of registeredShortcuts.values()) {
     for (const entry of entries) {

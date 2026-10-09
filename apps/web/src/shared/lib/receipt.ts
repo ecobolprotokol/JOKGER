@@ -1,5 +1,32 @@
-import { ReceiptPrinterEncoder } from '@point-of-sale/receipt-printer-encoder';
+import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder';
 import { formatRupiah } from './format';
+
+type ReceiptEncoderAdapter = ReceiptPrinterEncoder & {
+  setAlignment: (value: 'left' | 'center' | 'right') => ReceiptEncoderAdapter;
+  setTextSize: (width: number, height: number) => ReceiptEncoderAdapter;
+  write: (value: string) => ReceiptEncoderAdapter;
+  feed: (lines: number) => ReceiptEncoderAdapter;
+};
+
+type PrinterCharacteristic = { writeValue: (value: Uint8Array) => Promise<void> };
+type PrinterService = {
+  getCharacteristic: (characteristic: string) => Promise<PrinterCharacteristic>;
+};
+type PrinterGattServer = { getPrimaryService: (service: string) => Promise<PrinterService> };
+type PrinterDevice = {
+  gatt?: {
+    connect: () => Promise<PrinterGattServer>;
+    disconnect: () => void;
+  };
+};
+type NavigatorWithBluetooth = Navigator & {
+  bluetooth?: {
+    requestDevice: (options: {
+      filters: Array<{ services: string[] }>;
+      optionalServices: string[];
+    }) => Promise<PrinterDevice>;
+  };
+};
 
 export interface ReceiptData {
   storeName: string;
@@ -49,8 +76,26 @@ const PAPER_WIDTHS = {
   80: 48,
 } as const;
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function createReceiptEncoder(): ReceiptEncoderAdapter {
+  const encoder = new ReceiptPrinterEncoder() as ReceiptEncoderAdapter;
+  encoder.setAlignment = (value) => encoder.align(value);
+  encoder.setTextSize = (width, height) => encoder.size(width, height);
+  encoder.write = (value) => encoder.text(value);
+  encoder.feed = (lines) => encoder.newline(lines);
+  return encoder;
+}
+
 export function encodeReceipt(data: ReceiptData, paperWidthMm: 58 | 80 = 58): Uint8Array {
-  const encoder = new ReceiptPrinterEncoder();
+  const encoder = createReceiptEncoder();
   const width = PAPER_WIDTHS[paperWidthMm];
 
   encoder.initialize();
@@ -157,8 +202,8 @@ export function encodeReceipt(data: ReceiptData, paperWidthMm: 58 | 80 = 58): Ui
     if (payment.method === 'cash' && payment.receivedAmount != null) {
       encoder.write(`  Diterima: ${formatRupiah(payment.receivedAmount)}`);
       encoder.feed(1);
-      if (payment.changeAmount > 0) {
-        encoder.write(`  Kembalian: ${formatRupiah(payment.changeAmount)}`);
+      if ((payment.changeAmount ?? 0) > 0) {
+        encoder.write(`  Kembalian: ${formatRupiah(payment.changeAmount ?? 0)}`);
         encoder.feed(1);
       }
     }
@@ -192,27 +237,34 @@ export function encodeReceipt(data: ReceiptData, paperWidthMm: 58 | 80 = 58): Ui
 
 export async function printReceipt(data: ReceiptData, paperWidthMm: 58 | 80 = 58): Promise<void> {
   const encoded = encodeReceipt(data, paperWidthMm);
+  const bluetooth = (navigator as NavigatorWithBluetooth).bluetooth;
 
-  if (!navigator.bluetooth) {
+  if (!bluetooth) {
     throw new Error('Web Bluetooth API tidak didukung di browser ini.');
   }
 
-  const device = await navigator.bluetooth.requestDevice({
+  const device = await bluetooth.requestDevice({
     filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
     optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'],
   });
-
-  const server = await device.gatt!.connect();
-  const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-  const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-
-  const chunkSize = 20;
-  for (let i = 0; i < encoded.length; i += chunkSize) {
-    const chunk = encoded.slice(i, i + chunkSize);
-    await characteristic.writeValue(chunk);
+  if (!device.gatt) {
+    throw new Error('Printer tidak menyediakan koneksi Bluetooth.');
   }
-
-  await device.gatt!.disconnect();
+  const gatt = device.gatt;
+  const server = await gatt.connect();
+  try {
+    const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+    const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+    const chunkSize = 100;
+    for (let i = 0; i < encoded.length; i += chunkSize) {
+      await characteristic.writeValue(encoded.slice(i, i + chunkSize));
+      if (i + chunkSize < encoded.length) {
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 20));
+      }
+    }
+  } finally {
+    gatt.disconnect();
+  }
 }
 
 export function fallbackPrintReceipt(data: ReceiptData): void {
@@ -233,15 +285,15 @@ function generateReceiptHtml(data: ReceiptData): string {
     .map(
       (item) => `
     <tr>
-      <td>${item.qty}x ${item.name}</td>
+      <td>${escapeHtml(`${item.qty}x ${item.name}`)}</td>
       <td style="text-align: right;">${formatRupiah(item.lineTotal)}</td>
     </tr>
     ${
       item.modifierLabels.length > 0
-        ? `<tr><td colspan="2" style="padding-left: 20px;">${item.modifierLabels.join(', ')}</td></tr>`
+        ? `<tr><td colspan="2" style="padding-left: 20px;">${item.modifierLabels.map(escapeHtml).join(', ')}</td></tr>`
         : ''
     }
-    ${item.note ? `<tr><td colspan="2" style="padding-left: 20px; font-style: italic;">Catatan: ${item.note}</td></tr>` : ''}
+    ${item.note ? `<tr><td colspan="2" style="padding-left: 20px; font-style: italic;">Catatan: ${escapeHtml(item.note)}</td></tr>` : ''}
   `,
     )
     .join('');
@@ -257,15 +309,15 @@ function generateReceiptHtml(data: ReceiptData): string {
       let extra = '';
       if (payment.method === 'cash' && payment.receivedAmount != null) {
         extra += `<br>Diterima: ${formatRupiah(payment.receivedAmount)}`;
-        if (payment.changeAmount > 0) {
-          extra += `<br>Kembalian: ${formatRupiah(payment.changeAmount)}`;
+        if ((payment.changeAmount ?? 0) > 0) {
+          extra += `<br>Kembalian: ${formatRupiah(payment.changeAmount ?? 0)}`;
         }
       }
       if (payment.referenceNo) {
-        extra += `<br>Ref: ${payment.referenceNo}`;
+        extra += `<br>Ref: ${escapeHtml(payment.referenceNo)}`;
       }
       if (payment.accountName && payment.accountNo) {
-        extra += `<br>${payment.accountName} (${payment.accountNo})`;
+        extra += `<br>${escapeHtml(payment.accountName)} (${escapeHtml(payment.accountNo)})`;
       }
       return `<div>${methodLabel}: ${formatRupiah(payment.amount)}${extra}</div>`;
     })
@@ -276,7 +328,7 @@ function generateReceiptHtml(data: ReceiptData): string {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Struk ${data.orderNo}</title>
+  <title>Struk ${escapeHtml(data.orderNo)}</title>
   <style>
     body { font-family: monospace; font-size: 12px; margin: 0; padding: 20px; }
     .receipt { max-width: 300px; margin: 0 auto; }
@@ -291,16 +343,16 @@ function generateReceiptHtml(data: ReceiptData): string {
 </head>
 <body>
   <div class="receipt">
-    ${data.receiptHeader ? `<div class="center">${data.receiptHeader}</div><br>` : ''}
-    <div class="center large bold">${data.storeName}</div>
-    ${data.address ? `<div class="center">${data.address}</div>` : ''}
-    ${data.phone ? `<div class="center">Telp: ${data.phone}</div>` : ''}
+    ${data.receiptHeader ? `<div class="center">${escapeHtml(data.receiptHeader)}</div><br>` : ''}
+    <div class="center large bold">${escapeHtml(data.storeName)}</div>
+    ${data.address ? `<div class="center">${escapeHtml(data.address)}</div>` : ''}
+    ${data.phone ? `<div class="center">Telp: ${escapeHtml(data.phone)}</div>` : ''}
     <div class="line"></div>
-    <div>No. Pesanan: ${data.orderNo}</div>
+    <div>No. Pesanan: ${escapeHtml(data.orderNo)}</div>
     <div>Tipe: ${data.orderType === 'dine_in' ? 'Makan di Tempat' : 'Bawa Pulang'}</div>
-    ${data.tableLabel ? `<div>Meja: ${data.tableLabel}</div>` : ''}
-    ${data.customerName ? `<div>Pelanggan: ${data.customerName}</div>` : ''}
-    <div>Kasir: ${data.cashierName}</div>
+    ${data.tableLabel ? `<div>Meja: ${escapeHtml(data.tableLabel)}</div>` : ''}
+    ${data.customerName ? `<div>Pelanggan: ${escapeHtml(data.customerName)}</div>` : ''}
+    <div>Kasir: ${escapeHtml(data.cashierName)}</div>
     <div>Waktu: ${data.createdAt.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}</div>
     <div class="line" style="border-top: 1px solid #000;"></div>
     <table>
@@ -308,7 +360,7 @@ function generateReceiptHtml(data: ReceiptData): string {
     </table>
     <div class="line" style="border-top: 1px solid #000;"></div>
     <tr><td>Subtotal</td><td style="text-align: right;">${formatRupiah(data.subtotal)}</td></tr>
-    ${data.discountTotal > 0 ? `<tr><td>Diskon${data.voucherCode ? ` (${data.voucherCode})` : ''}</td><td style="text-align: right;">-${formatRupiah(data.discountTotal)}</td></tr>` : ''}
+    ${data.discountTotal > 0 ? `<tr><td>Diskon${data.voucherCode ? ` (${escapeHtml(data.voucherCode)})` : ''}</td><td style="text-align: right;">-${formatRupiah(data.discountTotal)}</td></tr>` : ''}
     ${data.serviceAmount > 0 ? `<tr><td>Layanan</td><td style="text-align: right;">${formatRupiah(data.serviceAmount)}</td></tr>` : ''}
     ${data.taxAmount > 0 ? `<tr><td>Pajak</td><td style="text-align: right;">${formatRupiah(data.taxAmount)}</td></tr>` : ''}
     ${data.roundingAmount !== 0 ? `<tr><td>Pembulatan</td><td style="text-align: right;">${formatRupiah(data.roundingAmount)}</td></tr>` : ''}
@@ -317,7 +369,7 @@ function generateReceiptHtml(data: ReceiptData): string {
     <div class="bold">PEMBAYARAN:</div>
     ${paymentsHtml}
     <div class="line" style="border-top: 1px solid #000;"></div>
-    ${data.receiptFooter ? `<div class="center">${data.receiptFooter}</div><br>` : ''}
+    ${data.receiptFooter ? `<div class="center">${escapeHtml(data.receiptFooter)}</div><br>` : ''}
     <div class="center">Terima kasih!</div>
   </div>
   <button class="no-print" onclick="window.print()">Cetak</button>

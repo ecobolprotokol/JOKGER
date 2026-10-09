@@ -138,10 +138,46 @@ pnpm dev
 
 Aplikasi akan tersedia di `http://localhost:5173` (atau port yang ditampilkan Vite).
 
-**Login default (local/staging):**
+**Akun demo lokal** (dibuat ulang oleh `pnpm db:reset`):
 
-- Email & password dikonfigurasi via `E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD` di CI
-- Untuk local development, buat akun via Supabase Dashboard atau gunakan endpoint `/api/admin/create-staff`
+| Peran       | Email                | Kata sandi        |
+| ----------- | -------------------- | ----------------- |
+| Admin       | `admin@jokger.local` | `AdminLocal#2026` |
+| Super admin | `owner@jokger.local` | `OwnerLocal#2026` |
+
+Kredensial ini hanya untuk database lokal yang dapat dibuang. Jangan gunakan atau seed akun ini ke staging maupun production. CI memakai `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_SUPER_EMAIL`, dan `E2E_SUPER_PASSWORD` dari secret environment masing-masing.
+
+### Membuat akun production pertama
+
+Jangan jalankan atau salin akun demo dari `supabase/seed.sql` ke production. Buat user pemilik pertama melalui Supabase Dashboard → Authentication → Users, gunakan email pemilik dan kata sandi sementara yang unik, lalu jalankan SQL satu kali berikut di SQL Editor dengan email dan nama pemilik yang sebenarnya:
+
+```sql
+do $$
+declare
+   owner_user auth.users%rowtype;
+begin
+   select * into owner_user
+   from auth.users
+   where email = lower('EMAIL_PEMILIK_DI_SINI')
+   for update;
+
+   if not found then
+      raise exception 'User Auth pemilik tidak ditemukan';
+   end if;
+
+   insert into public.profiles (id, email, full_name, role, is_active)
+   values (owner_user.id, owner_user.email, 'Nama Pemilik', 'super_admin', true)
+   on conflict (id) do update
+   set email = excluded.email,
+         full_name = excluded.full_name,
+         role = 'super_admin',
+         is_active = true,
+         updated_at = now();
+end;
+$$;
+```
+
+Masuk memakai akun tersebut, lalu buka `/account/password` untuk mengganti kata sandi sementara. Jangan mencatat kata sandi production di SQL, README, seed, atau Git; simpan hanya pada password manager pemilik.
 
 ## Database
 

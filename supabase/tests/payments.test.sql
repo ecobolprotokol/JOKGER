@@ -1,6 +1,6 @@
 begin;
 
-select plan(6);
+select plan(8);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at)
 values (
@@ -55,6 +55,7 @@ select public.create_order(
 
 select is(
   (select status::text from public.submit_payment(
+    '00000000-0000-4000-8000-000000001020',
     (select id from public.orders where order_no like '%0001'),
     'transfer',
     10000,
@@ -65,6 +66,25 @@ select is(
   )),
   'pending_verification',
   'transfer dibuat menunggu verifikasi'
+);
+select is(
+  (select id::text from public.submit_payment(
+    '00000000-0000-4000-8000-000000001020',
+    (select id from public.orders where order_no like '%0001'),
+    'transfer',
+    10000,
+    '00000000-0000-4000-8000-000000001012',
+    'REF12345',
+    null,
+    null
+  )),
+  (select id::text from public.payments where order_id = (select id from public.orders where order_no like '%0001')),
+  'retry dengan client_ref sama mengembalikan pembayaran yang sama'
+);
+select is(
+  (select count(*)::int from public.payments where order_id = (select id from public.orders where order_no like '%0001')),
+  1,
+  'retry pembayaran tidak membuat baris pembayaran kedua'
 );
 
 select throws_ok(
@@ -98,6 +118,7 @@ select throws_ok(
 );
 
 select public.submit_payment(
+  '00000000-0000-4000-8000-000000001021',
   (select id from public.orders where order_no like '%0002'),
   'transfer',
   10000,

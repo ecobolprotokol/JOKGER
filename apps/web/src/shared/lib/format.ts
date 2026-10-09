@@ -1,4 +1,4 @@
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 const TIME_ZONE = 'Asia/Jakarta';
@@ -25,17 +25,27 @@ export function formatPercent(value: number, maximumFractionDigits = 2): string 
 
 export function formatDate(date: Date | string | number): string {
   const d = new Date(date);
-  return format(d, 'd MMM yyyy', { locale: id, timeZone: TIME_ZONE });
+  return new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: TIME_ZONE,
+  }).format(d);
 }
 
 export function formatDateTime(date: Date | string | number): string {
   const d = new Date(date);
-  return format(d, 'd MMM yyyy, HH:mm', { locale: id, timeZone: TIME_ZONE });
+  return `${formatDate(d)}, ${formatTime(d)}`;
 }
 
 export function formatTime(date: Date | string | number): string {
   const d = new Date(date);
-  return format(d, 'HH:mm', { timeZone: TIME_ZONE });
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: TIME_ZONE,
+  }).format(d);
 }
 
 export function formatRelativeTime(date: Date | string | number): string {

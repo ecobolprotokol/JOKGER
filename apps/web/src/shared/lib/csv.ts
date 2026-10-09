@@ -28,7 +28,7 @@ export function downloadCsv(content: string, filename: string): void {
 
 export function generateCsvFilename(prefix: string, extension = 'csv'): string {
   const now = new Date();
-  const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
-  const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '');
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
   return `${prefix}-${dateStr}-${timeStr}.${extension}`;
 }

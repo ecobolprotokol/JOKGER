@@ -14,6 +14,10 @@ const orderSchema = z.object({
   created_at: z.string(),
   order_items: z.array(z.object({ qty: z.number().int() })),
 });
+const returnOrderInputSchema = z.object({
+  orderId: z.string().uuid(),
+  reason: z.string().trim().min(3).max(200),
+});
 
 export type OrderSummary = z.infer<typeof orderSchema>;
 export type OrderStatus = OrderSummary['status'];
@@ -74,6 +78,31 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Resu
   const parsed = orderSchema.safeParse({ ...data, order_items: [] });
   if (!parsed.success) {
     return { ok: false, error: toAppError(new Error('Respons pembatalan tidak valid.')) };
+  }
+  return { ok: true, data: parsed.data };
+}
+
+export async function returnCompletedOrder(
+  orderId: string,
+  reason: string,
+): Promise<Result<OrderSummary>> {
+  const parsedInput = returnOrderInputSchema.safeParse({ orderId, reason });
+  if (!parsedInput.success) {
+    return { ok: false, error: toAppError({ code: 'INPUT_INVALID' }) };
+  }
+  if (!supabase) {
+    return { ok: false, error: toAppError({ code: 'SERVER_NOT_CONFIGURED' }) };
+  }
+  const { data, error } = await supabase.rpc('return_completed_order', {
+    p_order_id: parsedInput.data.orderId,
+    p_reason: parsedInput.data.reason,
+  });
+  if (error) {
+    return { ok: false, error: toAppError(error) };
+  }
+  const parsed = orderSchema.safeParse({ ...data, order_items: [] });
+  if (!parsed.success) {
+    return { ok: false, error: toAppError(new Error('Respons retur pesanan tidak valid.')) };
   }
   return { ok: true, data: parsed.data };
 }

@@ -66,6 +66,9 @@ export function ShiftPage() {
         <Link className="button button--secondary" to="/inventory">
           {strings.inventory.title}
         </Link>
+        <Link className="button button--secondary" to="/account/password">
+          {strings.auth.passwordChangeTitle}
+        </Link>
       </header>
 
       {!activeShift ? (

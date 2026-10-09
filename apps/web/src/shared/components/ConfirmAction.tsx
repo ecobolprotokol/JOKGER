@@ -11,6 +11,13 @@ type ConfirmActionProps = {
   onConfirm: (reason: string | null) => void | Promise<void>;
 };
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return typeof error.message === 'string' ? error.message : strings.common.unknownError;
+  }
+  return strings.common.unknownError;
+}
+
 export function ConfirmAction({
   title,
   description,
@@ -24,6 +31,7 @@ export function ConfirmAction({
   const [reason, setReason] = useState('');
   const [typedText, setTypedText] = useState('');
   const [pending, setPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const reasonIsValid =
     !requireReason || (reason.trim().length >= 3 && reason.trim().length <= 200);
   const typedTextIsValid = !requireTypedText || typedText === requireTypedText;
@@ -46,9 +54,12 @@ export function ConfirmAction({
       return;
     }
     setPending(true);
+    setErrorMessage(null);
     try {
       await onConfirm(requireReason ? reason.trim() : null);
       dialogRef.current?.close();
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
     } finally {
       setPending(false);
     }
@@ -63,6 +74,7 @@ export function ConfirmAction({
       onClose={() => {
         setReason('');
         setTypedText('');
+        setErrorMessage(null);
       }}
     >
       <form method="dialog" className="confirm-dialog__content">
@@ -75,7 +87,10 @@ export function ConfirmAction({
               autoFocus
               maxLength={200}
               value={reason}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event) => {
+                setReason(event.target.value);
+                setErrorMessage(null);
+              }}
               aria-invalid={!reasonIsValid}
             />
           </label>
@@ -83,8 +98,19 @@ export function ConfirmAction({
         {requireTypedText && (
           <label className="field">
             <span>{strings.common.typeToConfirm}</span>
-            <input value={typedText} onChange={(event) => setTypedText(event.target.value)} />
+            <input
+              value={typedText}
+              onChange={(event) => {
+                setTypedText(event.target.value);
+                setErrorMessage(null);
+              }}
+            />
           </label>
+        )}
+        {errorMessage && (
+          <p className="form-alert" role="alert">
+            {errorMessage}
+          </p>
         )}
         <div className="confirm-dialog__actions">
           <button className="button button--secondary" value="cancel" autoFocus={!requireReason}>
