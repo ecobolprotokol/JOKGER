@@ -1,0 +1,34 @@
+project_id = "jokger"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+enable_signup = false
+jwt_expiry = 28800
+minimum_password_length = 10
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[realtime]
+enabled = true

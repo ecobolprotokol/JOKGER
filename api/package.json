@@ -1,0 +1,17 @@
+{
+  "name": "@jokger/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sentry/node": "^8.47.0",
+    "@supabase/supabase-js": "^2.47.10",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.7.2"
+  }
+}

@@ -25,24 +25,25 @@ Dokumen ini adalah sumber kebenaran tunggal untuk AI coding yang membangun JOKGE
 
 Bagian ini menutup semua ambiguitas. Jika ada konflik dengan bagian lain, bagian ini yang berlaku.
 
-| Kode | Topik | Keputusan |
-|---|---|---|
-| D1 | Definisi pendapatan | Pendapatan = jumlah `payments.amount` dengan `status = 'verified'`. Refund disimpan sebagai pembayaran bernilai negatif berstatus `verified`. Status pesanan tidak menjadi syarat laporan. |
-| D2 | Tanggal pendapatan | Dihitung berdasarkan `payments.created_at` dalam zona `Asia/Jakarta`. |
-| D3 | Kas shift | Kas yang diharapkan = saldo awal + jumlah pembayaran tunai `verified` dengan `payments.shift_id` = shift tersebut (refund tunai ikut mengurangi). Ini sama dengan dasar laporan (D1), sehingga laporan dan kas selalu cocok. |
-| D4 | Pesanan selesai | Pesanan hanya bisa `completed` jika total pembayaran `verified` ≥ `grand_total`. Pengaturan `require_verified_payment` bisa dimatikan oleh super admin, tetapi default-nya aktif. Jika dimatikan, pesanan boleh selesai tanpa lunas dan selisihnya tercatat. |
-| D5 | Pembatalan pesanan yang sudah dibayar | Pembatalan membuat refund otomatis sebesar pembayaran `verified` yang ada. Kasir mengembalikan uang di luar sistem. Refund tercatat sebagai pembayaran negatif. |
-| D6 | Retur pesanan selesai | Hanya super admin. Status pesanan menjadi `cancelled`, kolom `cancelled_from = 'completed'`, stok dikembalikan, refund dibuat. Alasan wajib. |
-| D7 | Laporan | Satu RPC `get_sales_report` mengembalikan seluruh data laporan dalam satu jsonb. Rentang tanggal memakai tanggal lokal Jakarta (inklusif). |
-| D8 | Item dan kategori di laporan | Penjualan item dihitung dari `line_total` item tidak di-void pada pesanan tidak `cancelled`. Angka ini sebelum diskon. Laporan menampilkan baris terpisah "Diskon voucher" agar selisih dengan total pembayaran terlihat. |
-| D9 | Akses printer | Pengaturan printer (pairing Bluetooth dan ukuran kertas perangkat) bisa diakses admin dan super admin karena sifatnya lokal perangkat. Lebar kertas default toko tetap diatur super admin. |
-| D10 | Logo | Kolom bernama `logo_url` berisi public URL dari Storage. |
-| D11 | Pembuatan staff | Lewat endpoint serverless `/api/admin/create-staff`. Perubahan peran dan status lewat RPC. Semua tercatat di `audit_logs`. |
-| D12 | Font branding | Pilihan terbatas: `Inter`, `Plus Jakarta Sans`, `Poppins`, dan `system-ui`. Font dimuat lokal dari paket npm (`@fontsource`), tidak dari CDN eksternal. |
-| D13 | Realtime | Dipakai di halaman Pesanan dan Verifikasi Pembayaran. Event memicu invalidasi query TanStack Query, bukan update manual. |
-| D14 | Lighthouse | Diukur pada build production, dengan login otomatis memakai akun uji, untuk halaman `/login`, `/pos`, dan `/orders`. |
-| D15 | Voucher dan void | Jika void item membuat subtotal di bawah `min_subtotal` voucher, voucher dilepas otomatis dalam transaksi yang sama, redemption dihapus, `used_count` dikurangi, dan respons RPC menyebut `voucher_released`. |
-| D16 | Stok negatif | Default tidak diizinkan. Super admin bisa mengizinkan per pergerakan dengan parameter eksplisit dan alasan wajib. |
+| Kode | Topik                                 | Keputusan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1   | Definisi pendapatan                   | Pendapatan = jumlah `payments.amount` dengan `status = 'verified'`. Refund disimpan sebagai pembayaran bernilai negatif berstatus `verified`. Status pesanan tidak menjadi syarat laporan.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| D2   | Tanggal pendapatan                    | Dihitung berdasarkan `payments.created_at` dalam zona `Asia/Jakarta`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| D3   | Kas shift                             | Kas yang diharapkan = saldo awal + jumlah pembayaran tunai `verified` dengan `payments.shift_id` = shift tersebut (refund tunai ikut mengurangi). Ini sama dengan dasar laporan (D1), sehingga laporan dan kas selalu cocok.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| D4   | Pesanan selesai                       | Pesanan hanya bisa `completed` jika total pembayaran `verified` ≥ `grand_total`. Pengaturan `require_verified_payment` bisa dimatikan oleh super admin, tetapi default-nya aktif. Jika dimatikan, pesanan boleh selesai tanpa lunas dan selisihnya tercatat.                                                                                                                                                                                                                                                                                                                                                                                                                |
+| D5   | Pembatalan pesanan yang sudah dibayar | Pembatalan membuat refund otomatis sebesar pembayaran `verified` yang ada. Kasir mengembalikan uang di luar sistem. Refund tercatat sebagai pembayaran negatif.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| D6   | Retur pesanan selesai                 | Hanya super admin. Status pesanan menjadi `cancelled`, kolom `cancelled_from = 'completed'`, stok dikembalikan, refund dibuat. Alasan wajib.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| D7   | Laporan                               | Satu RPC `get_sales_report` mengembalikan seluruh data laporan dalam satu jsonb. Rentang tanggal memakai tanggal lokal Jakarta (inklusif).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| D8   | Item dan kategori di laporan          | Penjualan item dihitung dari `line_total` item tidak di-void pada pesanan tidak `cancelled`. Angka ini sebelum diskon. Laporan menampilkan baris terpisah "Diskon voucher" agar selisih dengan total pembayaran terlihat.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| D9   | Akses printer                         | Pengaturan printer (pairing Bluetooth dan ukuran kertas perangkat) bisa diakses admin dan super admin karena sifatnya lokal perangkat. Lebar kertas default toko tetap diatur super admin.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| D10  | Logo                                  | Kolom bernama `logo_url` berisi public URL dari Storage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| D11  | Pembuatan staff                       | Lewat endpoint serverless `/api/admin/create-staff`. Perubahan peran dan status lewat RPC. Semua tercatat di `audit_logs`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| D12  | Font branding                         | Pilihan terbatas: `Inter`, `Plus Jakarta Sans`, `Poppins`, dan `system-ui`. Font dimuat lokal dari paket npm (`@fontsource`), tidak dari CDN eksternal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| D13  | Realtime                              | Dipakai di halaman Pesanan dan Verifikasi Pembayaran. Event memicu invalidasi query TanStack Query, bukan update manual.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| D14  | Lighthouse                            | Diukur pada build production, dengan login otomatis memakai akun uji, untuk halaman `/login`, `/pos`, dan `/orders`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| D15  | Voucher dan void                      | Jika void item membuat subtotal di bawah `min_subtotal` voucher, voucher dilepas otomatis dalam transaksi yang sama, redemption dihapus, `used_count` dikurangi, dan respons RPC menyebut `voucher_released`.                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| D16  | Stok negatif                          | Default tidak diizinkan. Super admin bisa mengizinkan per pergerakan dengan parameter eksplisit dan alasan wajib.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| D17  | Versi toolchain aman                  | Keamanan dependency mengungguli batas major awal: Vite minimal 6.4.3 dan Vitest minimal 4.0.18 untuk menutup advisory kritis/tinggi pada Vite 5 dan Vitest 2. React 18, Node 20, dan `@vitejs/plugin-react` 5.x tetap dipakai. `pnpm audit --audit-level=high` tetap wajib; advisory upstream tanpa patch harus dicatat dan tidak boleh ditutupi dengan menurunkan ambang audit. Pada 2026-10-09, satu temuan high `GHSA-vfj7-8cjw-p6xm` masih mengenai `braces@3.0.3` tanpa versi perbaikan upstream; jalurnya melalui Tailwind 3 dan lint-staged 15. Sampai ada patch atau keputusan migrasi stack, gerbang audit tetap berstatus gagal dan produk belum siap production. |
 
 ---
 
@@ -56,37 +57,37 @@ Bagian ini menutup semua ambiguitas. Jika ada konflik dengan bagian lain, bagian
 
 ## 3. Stak Teknologi
 
-| Lapisan | Paket | Versi | Catatan |
-|---|---|---|---|
-| Runtime | Node.js | 20 LTS | Dikunci di `.nvmrc` |
-| Package manager | pnpm | 9 | `packageManager` di root |
-| Bahasa | TypeScript | 5.5+ | `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
-| UI | react, react-dom | 18.3 | Pakai 18 agar kompatibel dengan ekosistem |
-| Build | vite, @vitejs/plugin-react | 5.x | |
-| Routing | react-router-dom | 6.28+ | Route dengan `lazy` |
-| Data server | @tanstack/react-query | 5.x | Satu-satunya cache server |
-| State lokal | zustand | 5.x | Keranjang, perangkat, tema |
-| Form | react-hook-form, @hookform/resolvers | 7.x, 3.x | |
-| Validasi | zod | 3.23+ | Dipakai di klien dan endpoint API |
-| Backend | @supabase/supabase-js | 2.x terbaru | |
-| Styling | tailwindcss | 3.4.x | Tidak memakai v4 |
-| Komponen | shadcn/ui di atas Radix UI | - | Komponen disalin ke `shared/ui` |
-| Ikon | lucide-react | terbaru | |
-| Tanggal | date-fns | 3.x | Zona lewat `Intl`, tanpa paket tz tambahan |
-| Font | @fontsource/inter, @fontsource/plus-jakarta-sans, @fontsource/poppins | terbaru | |
-| Cetak ESC/POS | @point-of-sale/receipt-printer-encoder | terbaru | Dikunci versinya |
-| Error tracking | @sentry/react, @sentry/node | 8.x | Dengan `beforeSend` penyaring data pribadi |
-| Serverless | Vercel Functions (Node.js 20) | - | Hanya untuk `/api` |
-| Hosting | Vercel | - | Deploy dari Git |
-| Database | Supabase (PostgreSQL 15+) | - | Auth, Storage, Realtime |
-| Unit & komponen test | vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, jsdom | vitest 2.x | |
-| Database test | pgTAP lewat `supabase test db` | - | |
-| E2E | @playwright/test | 1.47+ | |
-| Aksesibilitas | @axe-core/playwright | terbaru | |
-| Performa | @lhci/cli | 0.14+ | |
-| Lint | eslint 9 (flat config), typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-jsx-a11y | terbaru | |
-| Format | prettier | 3.x | |
-| Git hook | husky, lint-staged, commitlint | terbaru | |
+| Lapisan              | Paket                                                                                         | Versi                   | Catatan                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------ |
+| Runtime              | Node.js                                                                                       | 20 LTS                  | Dikunci di `.nvmrc`                                                |
+| Package manager      | pnpm                                                                                          | 9                       | `packageManager` di root                                           |
+| Bahasa               | TypeScript                                                                                    | 5.5+                    | `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
+| UI                   | react, react-dom                                                                              | 18.3                    | Pakai 18 agar kompatibel dengan ekosistem                          |
+| Build                | vite, @vitejs/plugin-react                                                                    | Vite 6.4.3+, plugin 5.x | Batas minimum keamanan D17                                         |
+| Routing              | react-router-dom                                                                              | 6.28+                   | Route dengan `lazy`                                                |
+| Data server          | @tanstack/react-query                                                                         | 5.x                     | Satu-satunya cache server                                          |
+| State lokal          | zustand                                                                                       | 5.x                     | Keranjang, perangkat, tema                                         |
+| Form                 | react-hook-form, @hookform/resolvers                                                          | 7.x, 3.x                |                                                                    |
+| Validasi             | zod                                                                                           | 3.23+                   | Dipakai di klien dan endpoint API                                  |
+| Backend              | @supabase/supabase-js                                                                         | 2.x terbaru             |                                                                    |
+| Styling              | tailwindcss                                                                                   | 3.4.x                   | Tidak memakai v4                                                   |
+| Komponen             | shadcn/ui di atas Radix UI                                                                    | -                       | Komponen disalin ke `shared/ui`                                    |
+| Ikon                 | lucide-react                                                                                  | terbaru                 |                                                                    |
+| Tanggal              | date-fns                                                                                      | 3.x                     | Zona lewat `Intl`, tanpa paket tz tambahan                         |
+| Font                 | @fontsource/inter, @fontsource/plus-jakarta-sans, @fontsource/poppins                         | terbaru                 |                                                                    |
+| Cetak ESC/POS        | @point-of-sale/receipt-printer-encoder                                                        | terbaru                 | Dikunci versinya                                                   |
+| Error tracking       | @sentry/react, @sentry/node                                                                   | 8.x                     | Dengan `beforeSend` penyaring data pribadi                         |
+| Serverless           | Vercel Functions (Node.js 20)                                                                 | -                       | Hanya untuk `/api`                                                 |
+| Hosting              | Vercel                                                                                        | -                       | Deploy dari Git                                                    |
+| Database             | Supabase (PostgreSQL 15+)                                                                     | -                       | Auth, Storage, Realtime                                            |
+| Unit & komponen test | vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, jsdom | vitest 4.0.18+          | Batas minimum keamanan D17                                         |
+| Database test        | pgTAP lewat `supabase test db`                                                                | -                       |                                                                    |
+| E2E                  | @playwright/test                                                                              | 1.47+                   |                                                                    |
+| Aksesibilitas        | @axe-core/playwright                                                                          | terbaru                 |                                                                    |
+| Performa             | @lhci/cli                                                                                     | 0.14+                   |                                                                    |
+| Lint                 | eslint 9 (flat config), typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-jsx-a11y  | terbaru                 |                                                                    |
+| Format               | prettier                                                                                      | 3.x                     |                                                                    |
+| Git hook             | husky, lint-staged, commitlint                                                                | terbaru                 |                                                                    |
 
 Dilarang menambah paket di luar daftar ini kecuali untuk dependensi transitif.
 
@@ -106,6 +107,7 @@ Browser (React SPA, Vite build)
 ```
 
 Prinsip:
+
 1. Database adalah sumber kebenaran. Aturan uang, stok, status, dan akses ditegakkan di PostgreSQL.
 2. Klien hanya menampilkan dan mengirim niat. Perhitungan di klien (ringkasan keranjang) hanya untuk tampilan dan harus sama dengan server.
 3. Setiap RPC berjalan dalam satu transaksi. Error apa pun membatalkan seluruh perubahan.
@@ -183,6 +185,7 @@ jokger/
 ```
 
 Aturan struktur fitur:
+
 - Setiap fitur hanya mengimpor dari `shared/` dan dari `index.ts` fitur lain. Dilarang mengimpor file internal fitur lain.
 - `api.ts` berisi fungsi pemanggil Supabase dan mengembalikan `Result`, bukan melempar error.
 - `hooks.ts` berisi hook TanStack Query dan mutasi.
@@ -194,22 +197,23 @@ Aturan struktur fitur:
 
 ### 6.1 Variabel lingkungan
 
-| Variabel | Lokasi | Keterangan |
-|---|---|---|
-| `VITE_SUPABASE_URL` | Klien | URL proyek |
-| `VITE_SUPABASE_ANON_KEY` | Klien | Anon key |
-| `VITE_SENTRY_DSN` | Klien | Opsional |
-| `VITE_APP_ENV` | Klien | `local`, `staging`, `production` |
-| `SUPABASE_URL` | Vercel Function | Sama dengan klien |
-| `SUPABASE_SERVICE_ROLE_KEY` | Vercel Function saja | Tidak boleh masuk bundle |
-| `SENTRY_DSN` | Vercel Function | Opsional |
-| `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_SUPER_EMAIL`, `E2E_SUPER_PASSWORD` | CI | Hanya untuk proyek lokal dan staging |
+| Variabel                                                                         | Lokasi               | Keterangan                           |
+| -------------------------------------------------------------------------------- | -------------------- | ------------------------------------ |
+| `VITE_SUPABASE_URL`                                                              | Klien                | URL proyek                           |
+| `VITE_SUPABASE_ANON_KEY`                                                         | Klien                | Anon key                             |
+| `VITE_SENTRY_DSN`                                                                | Klien                | Opsional                             |
+| `VITE_APP_ENV`                                                                   | Klien                | `local`, `staging`, `production`     |
+| `SUPABASE_URL`                                                                   | Vercel Function      | Sama dengan klien                    |
+| `SUPABASE_SERVICE_ROLE_KEY`                                                      | Vercel Function saja | Tidak boleh masuk bundle             |
+| `SENTRY_DSN`                                                                     | Vercel Function      | Opsional                             |
+| `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_SUPER_EMAIL`, `E2E_SUPER_PASSWORD` | CI                   | Hanya untuk proyek lokal dan staging |
 
 Setiap lingkungan memiliki proyek Supabase sendiri: `local` (Supabase CLI), `staging`, dan `production`.
 
 ### 6.2 vercel.json
 
 Harus berisi:
+
 - `installCommand`: `pnpm install --frozen-lockfile`
 - `buildCommand`: `pnpm --filter @jokger/web build`
 - `outputDirectory`: `apps/web/dist`
@@ -475,18 +479,18 @@ create function is_super_admin() returns boolean language sql stable security de
 
 ### 8.2 Aturan akses per tabel
 
-| Tabel | SELECT | INSERT/UPDATE/DELETE langsung |
-|---|---|---|
-| profiles | staff | tidak ada |
-| store_settings | semua (anon juga, untuk layar masuk) | tidak ada |
-| payment_accounts | staff | tidak ada |
-| audit_logs | super_admin | tidak ada |
-| categories, menu_items, modifier_*, recipe_lines | staff | tidak ada |
-| inventory_items, stock_movements | staff | tidak ada |
-| stock_opnames, stock_opname_lines | staff | tidak ada |
-| shifts, orders, order_items, payments | staff | tidak ada |
-| vouchers, voucher_redemptions | staff | tidak ada |
-| daily_sequences | tidak ada | tidak ada |
+| Tabel                                            | SELECT                               | INSERT/UPDATE/DELETE langsung |
+| ------------------------------------------------ | ------------------------------------ | ----------------------------- |
+| profiles                                         | staff                                | tidak ada                     |
+| store_settings                                   | semua (anon juga, untuk layar masuk) | tidak ada                     |
+| payment_accounts                                 | staff                                | tidak ada                     |
+| audit_logs                                       | super_admin                          | tidak ada                     |
+| categories, menu_items, modifier_*, recipe_lines | staff                                | tidak ada                     |
+| inventory_items, stock_movements                 | staff                                | tidak ada                     |
+| stock_opnames, stock_opname_lines                | staff                                | tidak ada                     |
+| shifts, orders, order_items, payments            | staff                                | tidak ada                     |
+| vouchers, voucher_redemptions                    | staff                                | tidak ada                     |
+| daily_sequences                                  | tidak ada                            | tidak ada                     |
 
 Setiap tabel memiliki `enable row level security`. Semua `GRANT INSERT, UPDATE, DELETE` ke `anon` dan `authenticated` dicabut. Setiap fungsi `security definer` memakai `set search_path = public` dan dicabut `execute` dari `public` dan `anon`, lalu di-`grant` ke `authenticated`.
 
@@ -513,38 +517,38 @@ Setiap tabel memiliki `enable row level security`. Semua `GRANT INSERT, UPDATE, 
 
 Semua RPC: `language plpgsql`, `security definer`, `set search_path = public`. Semua error memakai `raise exception using errcode = ..., message = '<KODE>'` (kode dari bagian 11).
 
-| RPC | Peran | Argumen | Perilaku utama | Hasil |
-|---|---|---|---|---|
-| `open_shift` | staff | `p_opening_cash bigint` | Gagal jika ada shift terbuka. | `shifts` |
-| `close_shift` | staff | `p_actual_cash bigint, p_note text` | Gagal jika ada open bill di shift. Hitung `expected_cash` sesuai D3, simpan selisih, tutup shift. | `shifts` |
-| `create_order` | staff | `p_order_type, p_items jsonb, p_voucher_code text, p_table_label text, p_customer_name text, p_bill_mode text ('none'\|'open'), p_payments jsonb` | Validasi shift terbuka. Salin harga dan modifier. Kurangi stok sesuai resep. Hitung total. Terapkan voucher. Buat pembayaran jika `p_payments` tidak kosong dan bill_mode `none`. | `orders` |
-| `add_items_to_open_bill` | staff | `p_order_id, p_items jsonb` | Hanya jika `bill_state = 'open'`. Kurangi stok. Hitung ulang total. | `orders` |
-| `void_order_item` | staff | `p_item_id, p_reason text` | Hanya jika pesanan tidak `completed` dan tidak `cancelled`. Kembalikan stok (`void_return`). Hitung ulang. Terapkan D15. | `orders` |
-| `cancel_order` | staff | `p_order_id, p_reason text` | Dari `new` atau `processing`. Kembalikan stok (`cancel_return`). Lepas voucher. Buat refund bila ada pembayaran `verified` (D5). | `orders` |
-| `return_completed_order` | super_admin | `p_order_id, p_reason text` | Dari `completed` (D6). | `orders` |
-| `change_order_status` | staff | `p_order_id, p_to_status` | Transisi valid saja (lihat 10.3). `completed` mengikuti D4. | `orders` |
-| `apply_voucher` | staff | `p_order_id, p_code` | Hanya jika belum ada voucher. Validasi, hitung diskon, perbarui redemption. | `orders` |
-| `remove_voucher` | staff | `p_order_id, p_reason` | Lepas voucher dan redemption. | `orders` |
-| `submit_payment` | staff | `p_order_id, p_method, p_amount, p_payment_account_id, p_reference_no, p_proof_path, p_received_amount` | Lihat 10.6. Tunai langsung `verified`. | `payments` |
-| `verify_payment` | staff | `p_payment_id, p_approve boolean, p_note text` | Hanya `pending_verification`. Tolak wajib beri `p_note`. | `payments` |
-| `close_open_bill` | staff | `p_order_id, p_payments jsonb, p_voucher_code text` | Tutup bill, buat pembayaran. Gagal jika `p_payments` tidak menutup total (kecuali `pending_verification` diperbolehkan). Lepas `bill_state` menjadi `closed`. | `orders` |
-| `open_stock_opname` | staff | - | Buat opname `draft` dan salin `system_qty`. Gagal jika sudah ada draft. | `stock_opnames` |
-| `save_stock_opname_count` | staff | `p_opname_id, p_counts jsonb` | Batch simpan `counted_qty`. Gagal jika finalized. | `stock_opnames` |
-| `finalize_stock_opname` | staff | `p_opname_id` | Buat movement `opname` untuk selisih, kunci opname. | `stock_opnames` |
-| `record_stock_movement` | staff | `p_item_id, p_type ('purchase'\|'waste'\|'adjustment'), p_qty numeric, p_note text, p_allow_negative boolean` | Tidak boleh membuat stok negatif kecuali super admin dengan `p_allow_negative = true` dan catatan wajib (D16). | `stock_movements` |
-| `upsert_menu_item` | staff | `p_item jsonb` | Insert atau update. Harga hanya lewat fungsi ini. | `menu_items` |
-| `set_menu_item_available` | staff | `p_item_id, p_available boolean` | Toggle habis. | `menu_items` |
-| `upsert_category` | staff | `p_category jsonb` | | `categories` |
-| `upsert_recipe` | staff | `p_menu_item_id, p_lines jsonb` | Ganti seluruh resep item. | void |
-| `upsert_inventory_item` | staff | `p_item jsonb` | Tanpa mengubah `current_qty` langsung. | `inventory_items` |
-| `upsert_voucher` | staff | `p_voucher jsonb` | Edit tidak mengubah `used_count`. Kode tidak bisa diubah setelah dipakai. | `vouchers` |
-| `set_voucher_active` | staff | `p_voucher_id, p_active boolean` | Nonaktifkan voucher yang sudah dipakai. | `vouchers` |
-| `upsert_payment_account` | staff | `p_account jsonb` | | `payment_accounts` |
-| `set_payment_account_active` | staff | `p_account_id, p_active boolean` | Tidak ada hapus permanen. | `payment_accounts` |
-| `update_store_settings` | super_admin | `p_settings jsonb` | Validasi kontras warna. Tulis audit. | `store_settings` |
-| `set_staff_role` | super_admin | `p_user_id, p_role` | Tolak self-change, tolak menurunkan super admin terakhir. | `profiles` |
-| `set_staff_active` | super_admin | `p_user_id, p_active` | Tolak self-deactivation, tolak menonaktifkan super admin terakhir. | `profiles` |
-| `get_sales_report` | staff | `p_from date, p_to date` | Lihat 10.8. | `jsonb` |
+| RPC                          | Peran       | Argumen                                                                                                                                           | Perilaku utama                                                                                                                                                                    | Hasil              |
+| ---------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `open_shift`                 | staff       | `p_opening_cash bigint`                                                                                                                           | Gagal jika ada shift terbuka.                                                                                                                                                     | `shifts`           |
+| `close_shift`                | staff       | `p_actual_cash bigint, p_note text`                                                                                                               | Gagal jika ada open bill di shift. Hitung `expected_cash` sesuai D3, simpan selisih, tutup shift.                                                                                 | `shifts`           |
+| `create_order`               | staff       | `p_order_type, p_items jsonb, p_voucher_code text, p_table_label text, p_customer_name text, p_bill_mode text ('none'\|'open'), p_payments jsonb` | Validasi shift terbuka. Salin harga dan modifier. Kurangi stok sesuai resep. Hitung total. Terapkan voucher. Buat pembayaran jika `p_payments` tidak kosong dan bill_mode `none`. | `orders`           |
+| `add_items_to_open_bill`     | staff       | `p_order_id, p_items jsonb`                                                                                                                       | Hanya jika `bill_state = 'open'`. Kurangi stok. Hitung ulang total.                                                                                                               | `orders`           |
+| `void_order_item`            | staff       | `p_item_id, p_reason text`                                                                                                                        | Hanya jika pesanan tidak `completed` dan tidak `cancelled`. Kembalikan stok (`void_return`). Hitung ulang. Terapkan D15.                                                          | `orders`           |
+| `cancel_order`               | staff       | `p_order_id, p_reason text`                                                                                                                       | Dari `new` atau `processing`. Kembalikan stok (`cancel_return`). Lepas voucher. Buat refund bila ada pembayaran `verified` (D5).                                                  | `orders`           |
+| `return_completed_order`     | super_admin | `p_order_id, p_reason text`                                                                                                                       | Dari `completed` (D6).                                                                                                                                                            | `orders`           |
+| `change_order_status`        | staff       | `p_order_id, p_to_status`                                                                                                                         | Transisi valid saja (lihat 10.3). `completed` mengikuti D4.                                                                                                                       | `orders`           |
+| `apply_voucher`              | staff       | `p_order_id, p_code`                                                                                                                              | Hanya jika belum ada voucher. Validasi, hitung diskon, perbarui redemption.                                                                                                       | `orders`           |
+| `remove_voucher`             | staff       | `p_order_id, p_reason`                                                                                                                            | Lepas voucher dan redemption.                                                                                                                                                     | `orders`           |
+| `submit_payment`             | staff       | `p_order_id, p_method, p_amount, p_payment_account_id, p_reference_no, p_proof_path, p_received_amount`                                           | Lihat 10.6. Tunai langsung `verified`.                                                                                                                                            | `payments`         |
+| `verify_payment`             | staff       | `p_payment_id, p_approve boolean, p_note text`                                                                                                    | Hanya `pending_verification`. Tolak wajib beri `p_note`.                                                                                                                          | `payments`         |
+| `close_open_bill`            | staff       | `p_order_id, p_payments jsonb, p_voucher_code text`                                                                                               | Tutup bill, buat pembayaran. Gagal jika `p_payments` tidak menutup total (kecuali `pending_verification` diperbolehkan). Lepas `bill_state` menjadi `closed`.                     | `orders`           |
+| `open_stock_opname`          | staff       | -                                                                                                                                                 | Buat opname `draft` dan salin `system_qty`. Gagal jika sudah ada draft.                                                                                                           | `stock_opnames`    |
+| `save_stock_opname_count`    | staff       | `p_opname_id, p_counts jsonb`                                                                                                                     | Batch simpan `counted_qty`. Gagal jika finalized.                                                                                                                                 | `stock_opnames`    |
+| `finalize_stock_opname`      | staff       | `p_opname_id`                                                                                                                                     | Buat movement `opname` untuk selisih, kunci opname.                                                                                                                               | `stock_opnames`    |
+| `record_stock_movement`      | staff       | `p_item_id, p_type ('purchase'\|'waste'\|'adjustment'), p_qty numeric, p_note text, p_allow_negative boolean`                                     | Tidak boleh membuat stok negatif kecuali super admin dengan `p_allow_negative = true` dan catatan wajib (D16).                                                                    | `stock_movements`  |
+| `upsert_menu_item`           | staff       | `p_item jsonb`                                                                                                                                    | Insert atau update. Harga hanya lewat fungsi ini.                                                                                                                                 | `menu_items`       |
+| `set_menu_item_available`    | staff       | `p_item_id, p_available boolean`                                                                                                                  | Toggle habis.                                                                                                                                                                     | `menu_items`       |
+| `upsert_category`            | staff       | `p_category jsonb`                                                                                                                                |                                                                                                                                                                                   | `categories`       |
+| `upsert_recipe`              | staff       | `p_menu_item_id, p_lines jsonb`                                                                                                                   | Ganti seluruh resep item.                                                                                                                                                         | void               |
+| `upsert_inventory_item`      | staff       | `p_item jsonb`                                                                                                                                    | Tanpa mengubah `current_qty` langsung.                                                                                                                                            | `inventory_items`  |
+| `upsert_voucher`             | staff       | `p_voucher jsonb`                                                                                                                                 | Edit tidak mengubah `used_count`. Kode tidak bisa diubah setelah dipakai.                                                                                                         | `vouchers`         |
+| `set_voucher_active`         | staff       | `p_voucher_id, p_active boolean`                                                                                                                  | Nonaktifkan voucher yang sudah dipakai.                                                                                                                                           | `vouchers`         |
+| `upsert_payment_account`     | staff       | `p_account jsonb`                                                                                                                                 |                                                                                                                                                                                   | `payment_accounts` |
+| `set_payment_account_active` | staff       | `p_account_id, p_active boolean`                                                                                                                  | Tidak ada hapus permanen.                                                                                                                                                         | `payment_accounts` |
+| `update_store_settings`      | super_admin | `p_settings jsonb`                                                                                                                                | Validasi kontras warna. Tulis audit.                                                                                                                                              | `store_settings`   |
+| `set_staff_role`             | super_admin | `p_user_id, p_role`                                                                                                                               | Tolak self-change, tolak menurunkan super admin terakhir.                                                                                                                         | `profiles`         |
+| `set_staff_active`           | super_admin | `p_user_id, p_active`                                                                                                                             | Tolak self-deactivation, tolak menonaktifkan super admin terakhir.                                                                                                                | `profiles`         |
+| `get_sales_report`           | staff       | `p_from date, p_to date`                                                                                                                          | Lihat 10.8.                                                                                                                                                                       | `jsonb`            |
 
 Setiap RPC penulisan wajib menulis `audit_logs` kecuali `get_sales_report`.
 
@@ -591,14 +595,14 @@ Format `JKG-YYYYMMDD-NNNN`. Tanggal dari `now() at time zone 'Asia/Jakarta'`. No
 
 ### 10.3 Transisi status pesanan
 
-| Dari | Ke | Syarat |
-|---|---|---|
-| new | processing | Shift terbuka |
-| processing | ready | - |
-| ready | processing | Koreksi, tercatat audit |
-| ready | completed | D4: `bill_state` tidak `open`, dan pembayaran `verified` ≥ `grand_total` jika `require_verified_payment = true` |
-| new, processing | cancelled | Lewat `cancel_order` |
-| completed | cancelled | Hanya lewat `return_completed_order` (super admin) |
+| Dari            | Ke         | Syarat                                                                                                          |
+| --------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| new             | processing | Shift terbuka                                                                                                   |
+| processing      | ready      | -                                                                                                               |
+| ready           | processing | Koreksi, tercatat audit                                                                                         |
+| ready           | completed  | D4: `bill_state` tidak `open`, dan pembayaran `verified` ≥ `grand_total` jika `require_verified_payment = true` |
+| new, processing | cancelled  | Lewat `cancel_order`                                                                                            |
+| completed       | cancelled  | Hanya lewat `return_completed_order` (super admin)                                                              |
 
 Status `cancelled` adalah terminal. Transisi lain ditolak dengan `ORDER_STATUS_TRANSITION_INVALID`.
 
@@ -618,12 +622,13 @@ Status `cancelled` adalah terminal. Transisi lain ditolak dengan `ORDER_STATUS_T
 
 ### 10.6 Pembayaran
 
-| Metode | Status awal | Syarat |
-|---|---|---|
-| cash | `verified` | `received_amount ≥ amount`. `change_amount = received - amount`. |
+| Metode            | Status awal            | Syarat                                                                                                       |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
+| cash              | `verified`             | `received_amount ≥ amount`. `change_amount = received - amount`.                                             |
 | transfer, ewallet | `pending_verification` | `payment_account_id` aktif dan sesuai metode. `reference_no` wajib. `proof_path` opsional tetapi dianjurkan. |
 
 Aturan umum:
+
 - `amount` maksimal sama dengan sisa tagihan (`grand_total - sum(verified non-refund) - sum(pending non-refund)`). Melebihi sisa ditolak dengan `PAYMENT_EXCEEDS_OUTSTANDING`.
 - Pembayaran `rejected` tidak dihitung dan tidak mengurangi sisa tagihan.
 - `verify_payment` approve: status menjadi `verified`, `verified_by`, `verified_at`. Reject: status `rejected` dan `note` wajib.
@@ -641,6 +646,7 @@ Aturan umum:
 Input tanggal lokal Jakarta, inklusif. Hanya memakai pembayaran `verified` (termasuk refund negatif, D1) dengan `created_at` dalam rentang (D2).
 
 Output jsonb:
+
 - `summary`: `totalSales` (sum amount, refund sudah ikut), `totalTransactions` (jumlah pesanan unik yang punya pembayaran dalam rentang), `avgTransaction` (`totalSales / totalTransactions`, dibulatkan), `totalRefund` (sum refund negatif, ditampilkan positif), `totalDiscount`, `totalService`, `totalTax`, `totalVoid` (sum line_total item void pada pesanan yang punya pembayaran dalam rentang).
 - `daily[]`: `{date, totalSales, totalTransactions}`
 - `hourly[]`: `{hour, totalSales, totalTransactions}`
@@ -662,6 +668,7 @@ Rentang tanggal maksimal 366 hari, selain itu `INPUT_INVALID`.
 ### 10.10 Voucher
 
 Urutan validasi di `apply_voucher` dan `create_order`:
+
 1. Kode ditemukan (uppercase, `trim`).
 2. `is_active`.
 3. `now()` dalam `valid_from` dan `valid_until`.
@@ -679,7 +686,7 @@ Satu pesanan hanya boleh satu voucher. Voucher `used_count` naik saat diterapkan
 
 ### 10.12 Audit
 
-Tindakan yang wajib dicatat: `order.create`, `order.void_item`, `order.cancel`, `order.return`, `order.status_change`, `payment.submit`, `payment.verify`, `payment.refund`, `open_bill.close`, `shift.open`, `shift.close`, `voucher.create`, `voucher.update`, `voucher.deactivate`, `menu.update`, `menu.price_change`, `inventory.movement`, `opname.finalize`, `settings.update`, `staff.create`, `staff.role_update`, `staff.activate`, `staff.deactivate`, `payment_account.update`.
+Tindakan yang wajib dicatat: `order.create`, `order.void_item`, `order.cancel`, `order.return`, `order.status_change`, `payment.submit`, `payment.verify`, `payment.refund`, `open_bill.close`, `shift.open`, `shift.close`, `voucher.create`, `voucher.update`, `voucher.deactivate`, `menu.update`, `menu.price_change`, `inventory.item_update`, `inventory.movement`, `opname.finalize`, `settings.update`, `staff.create`, `staff.role_update`, `staff.activate`, `staff.deactivate`, `payment_account.update`.
 
 ---
 
@@ -687,54 +694,54 @@ Tindakan yang wajib dicatat: `order.create`, `order.void_item`, `order.cancel`, 
 
 Kode di bawah dikirim sebagai `message` dari PostgreSQL atau `error` dari endpoint. Klien memetakan setiap kode ke `strings/id.ts` lewat `shared/lib/errors.ts`. Kode yang tidak dikenal ditampilkan sebagai "Terjadi kesalahan. Coba lagi." dan tetap dicatat ke Sentry.
 
-| Kode | Arti |
-|---|---|
-| NOT_AUTHORIZED | Tidak punya hak |
-| INPUT_INVALID | Input tidak valid |
-| SHIFT_NOT_OPEN | Belum ada shift terbuka |
-| SHIFT_ALREADY_OPEN | Sudah ada shift terbuka |
-| SHIFT_NOT_FOUND | Shift tidak ditemukan |
-| SHIFT_HAS_OPEN_BILL | Masih ada open bill di shift |
-| ORDER_NOT_FOUND | Pesanan tidak ditemukan |
-| ORDER_STATUS_TRANSITION_INVALID | Transisi status tidak diizinkan |
-| ORDER_NOT_CANCELLABLE | Pesanan tidak bisa dibatalkan pada status ini |
-| ORDER_NOT_RETURNABLE | Pesanan tidak bisa diretur |
-| BILL_CLOSED | Open bill sudah ditutup |
-| BILL_NOT_CLOSED | Bill belum ditutup |
-| BILL_EMPTY | Pesanan kosong |
-| MENU_ITEM_UNAVAILABLE | Menu tidak tersedia atau habis |
-| ITEM_INVALID | Item tidak valid |
-| ITEM_QUANTITY_INVALID | Jumlah item di luar 1 sampai 100 |
-| ITEM_NOT_FOUND | Item tidak ditemukan |
-| ITEM_ALREADY_VOIDED | Item sudah di-void |
-| MODIFIER_INVALID | Pilihan modifier tidak sesuai aturan |
-| STOCK_INSUFFICIENT | Stok bahan tidak cukup |
-| VOUCHER_NOT_FOUND | Kode voucher tidak ditemukan |
-| VOUCHER_INACTIVE | Voucher nonaktif |
-| VOUCHER_NOT_STARTED | Voucher belum berlaku |
-| VOUCHER_EXPIRED | Voucher sudah berakhir |
-| VOUCHER_QUOTA_EXCEEDED | Kuota voucher habis |
-| VOUCHER_MIN_SUBTOTAL | Belum memenuhi minimum belanja |
-| VOUCHER_ALREADY_APPLIED | Pesanan sudah memakai voucher |
-| PAYMENT_AMOUNT_INVALID | Nominal pembayaran tidak valid |
-| PAYMENT_EXCEEDS_OUTSTANDING | Nominal melebihi sisa tagihan |
-| PAYMENT_ACCOUNT_INVALID | Rekening tidak aktif atau tidak sesuai metode |
-| PAYMENT_NOT_FOUND | Pembayaran tidak ditemukan |
-| PAYMENT_NOT_PENDING | Pembayaran sudah diverifikasi atau ditolak |
-| PAYMENT_NOT_VERIFIED | Pembayaran belum lunas atau belum terverifikasi |
-| CASH_RECEIVED_INSUFFICIENT | Uang diterima kurang dari nominal |
-| REASON_REQUIRED | Alasan wajib diisi |
-| OPNAME_FINALIZED | Opname sudah difinalisasi |
-| OPNAME_NOT_FOUND | Opname tidak ditemukan |
-| OPNAME_ALREADY_DRAFT | Masih ada opname draft |
-| STAFF_NOT_FOUND | Staff tidak ditemukan |
-| SELF_ROLE_CHANGE_FORBIDDEN | Tidak boleh mengubah peran sendiri |
-| SELF_DEACTIVATION_FORBIDDEN | Tidak boleh menonaktifkan diri sendiri |
-| LAST_SUPER_ADMIN | Tidak boleh menurunkan atau menonaktifkan super admin terakhir |
-| SETTINGS_INVALID | Pengaturan tidak valid |
-| CONTRAST_TOO_LOW | Kontras warna di bawah standar |
-| STAFF_EMAIL_EXISTS | Email sudah terdaftar |
-| SERVER_NOT_CONFIGURED | Konfigurasi server belum lengkap |
+| Kode                            | Arti                                                           |
+| ------------------------------- | -------------------------------------------------------------- |
+| NOT_AUTHORIZED                  | Tidak punya hak                                                |
+| INPUT_INVALID                   | Input tidak valid                                              |
+| SHIFT_NOT_OPEN                  | Belum ada shift terbuka                                        |
+| SHIFT_ALREADY_OPEN              | Sudah ada shift terbuka                                        |
+| SHIFT_NOT_FOUND                 | Shift tidak ditemukan                                          |
+| SHIFT_HAS_OPEN_BILL             | Masih ada open bill di shift                                   |
+| ORDER_NOT_FOUND                 | Pesanan tidak ditemukan                                        |
+| ORDER_STATUS_TRANSITION_INVALID | Transisi status tidak diizinkan                                |
+| ORDER_NOT_CANCELLABLE           | Pesanan tidak bisa dibatalkan pada status ini                  |
+| ORDER_NOT_RETURNABLE            | Pesanan tidak bisa diretur                                     |
+| BILL_CLOSED                     | Open bill sudah ditutup                                        |
+| BILL_NOT_CLOSED                 | Bill belum ditutup                                             |
+| BILL_EMPTY                      | Pesanan kosong                                                 |
+| MENU_ITEM_UNAVAILABLE           | Menu tidak tersedia atau habis                                 |
+| ITEM_INVALID                    | Item tidak valid                                               |
+| ITEM_QUANTITY_INVALID           | Jumlah item di luar 1 sampai 100                               |
+| ITEM_NOT_FOUND                  | Item tidak ditemukan                                           |
+| ITEM_ALREADY_VOIDED             | Item sudah di-void                                             |
+| MODIFIER_INVALID                | Pilihan modifier tidak sesuai aturan                           |
+| STOCK_INSUFFICIENT              | Stok bahan tidak cukup                                         |
+| VOUCHER_NOT_FOUND               | Kode voucher tidak ditemukan                                   |
+| VOUCHER_INACTIVE                | Voucher nonaktif                                               |
+| VOUCHER_NOT_STARTED             | Voucher belum berlaku                                          |
+| VOUCHER_EXPIRED                 | Voucher sudah berakhir                                         |
+| VOUCHER_QUOTA_EXCEEDED          | Kuota voucher habis                                            |
+| VOUCHER_MIN_SUBTOTAL            | Belum memenuhi minimum belanja                                 |
+| VOUCHER_ALREADY_APPLIED         | Pesanan sudah memakai voucher                                  |
+| PAYMENT_AMOUNT_INVALID          | Nominal pembayaran tidak valid                                 |
+| PAYMENT_EXCEEDS_OUTSTANDING     | Nominal melebihi sisa tagihan                                  |
+| PAYMENT_ACCOUNT_INVALID         | Rekening tidak aktif atau tidak sesuai metode                  |
+| PAYMENT_NOT_FOUND               | Pembayaran tidak ditemukan                                     |
+| PAYMENT_NOT_PENDING             | Pembayaran sudah diverifikasi atau ditolak                     |
+| PAYMENT_NOT_VERIFIED            | Pembayaran belum lunas atau belum terverifikasi                |
+| CASH_RECEIVED_INSUFFICIENT      | Uang diterima kurang dari nominal                              |
+| REASON_REQUIRED                 | Alasan wajib diisi                                             |
+| OPNAME_FINALIZED                | Opname sudah difinalisasi                                      |
+| OPNAME_NOT_FOUND                | Opname tidak ditemukan                                         |
+| OPNAME_ALREADY_DRAFT            | Masih ada opname draft                                         |
+| STAFF_NOT_FOUND                 | Staff tidak ditemukan                                          |
+| SELF_ROLE_CHANGE_FORBIDDEN      | Tidak boleh mengubah peran sendiri                             |
+| SELF_DEACTIVATION_FORBIDDEN     | Tidak boleh menonaktifkan diri sendiri                         |
+| LAST_SUPER_ADMIN                | Tidak boleh menurunkan atau menonaktifkan super admin terakhir |
+| SETTINGS_INVALID                | Pengaturan tidak valid                                         |
+| CONTRAST_TOO_LOW                | Kontras warna di bawah standar                                 |
+| STAFF_EMAIL_EXISTS              | Email sudah terdaftar                                          |
+| SERVER_NOT_CONFIGURED           | Konfigurasi server belum lengkap                               |
 
 ---
 
@@ -748,30 +755,30 @@ Kode di bawah dikirim sebagai `message` dari PostgreSQL atau `error` dari endpoi
 
 ### 12.2 Routing
 
-| Path | Peran | Layout |
-|---|---|---|
-| `/login` | publik | Kosong |
-| `/pos` | staff | PosLayout |
-| `/pos/open-bill/:orderId` | staff | PosLayout |
-| `/orders` | staff | AppShell |
-| `/orders/:orderId` | staff | AppShell |
-| `/history` | staff | AppShell |
-| `/shift` | staff | AppShell |
-| `/menu` | staff | AppShell |
-| `/inventory` | staff | AppShell |
-| `/inventory/opname` | staff | AppShell |
-| `/inventory/opname/:opnameId` | staff | AppShell |
-| `/vouchers` | staff | AppShell |
-| `/payment-accounts` | staff | AppShell |
-| `/payment-verification` | staff | AppShell |
-| `/reports` | staff | AppShell |
-| `/settings` | super_admin | AppShell |
-| `/settings/branding` | super_admin | AppShell |
-| `/settings/staff` | super_admin | AppShell |
-| `/settings/printer` | staff | AppShell |
-| `/audit` | super_admin | AppShell |
-| `/403` | publik | AppShell |
-| `*` | publik | Kosong |
+| Path                          | Peran       | Layout    |
+| ----------------------------- | ----------- | --------- |
+| `/login`                      | publik      | Kosong    |
+| `/pos`                        | staff       | PosLayout |
+| `/pos/open-bill/:orderId`     | staff       | PosLayout |
+| `/orders`                     | staff       | AppShell  |
+| `/orders/:orderId`            | staff       | AppShell  |
+| `/history`                    | staff       | AppShell  |
+| `/shift`                      | staff       | AppShell  |
+| `/menu`                       | staff       | AppShell  |
+| `/inventory`                  | staff       | AppShell  |
+| `/inventory/opname`           | staff       | AppShell  |
+| `/inventory/opname/:opnameId` | staff       | AppShell  |
+| `/vouchers`                   | staff       | AppShell  |
+| `/payment-accounts`           | staff       | AppShell  |
+| `/payment-verification`       | staff       | AppShell  |
+| `/reports`                    | staff       | AppShell  |
+| `/settings`                   | super_admin | AppShell  |
+| `/settings/branding`          | super_admin | AppShell  |
+| `/settings/staff`             | super_admin | AppShell  |
+| `/settings/printer`           | staff       | AppShell  |
+| `/audit`                      | super_admin | AppShell  |
+| `/403`                        | publik      | AppShell  |
+| `*`                           | publik      | Kosong    |
 
 Semua route kecuali `/login` memakai `lazy`. `RequireAuth` mengarahkan ke `/login` jika tidak ada sesi. `RequireRole` menampilkan `/403` jika peran tidak cocok. Setelah login: jika ada shift terbuka, ke `/pos`; jika tidak, ke `/shift`.
 
@@ -787,11 +794,11 @@ Menu sidebar hanya menampilkan item yang diizinkan peran. Kesalahan peran di sis
 
 ### 12.4 State lokal (Zustand)
 
-| Store | Isi | Persist |
-|---|---|---|
-| `cartStore` | item, modifier, catatan, voucher kode, tipe pesanan, nomor meja | localStorage `jokger.cart.v1` |
+| Store         | Isi                                                                  | Persist                         |
+| ------------- | -------------------------------------------------------------------- | ------------------------------- |
+| `cartStore`   | item, modifier, catatan, voucher kode, tipe pesanan, nomor meja      | localStorage `jokger.cart.v1`   |
 | `deviceStore` | pairing printer (nama, id), ukuran kertas lokal, mode shortcut aktif | localStorage `jokger.device.v1` |
-| `themeStore` | `light`, `dark`, `system` | localStorage `jokger.theme.v1` |
+| `themeStore`  | `light`, `dark`, `system`                                            | localStorage `jokger.theme.v1`  |
 
 Keranjang dihapus setelah pesanan berhasil dibuat. Tidak ada token atau data transaksi di localStorage.
 
@@ -806,6 +813,7 @@ Keranjang dihapus setelah pesanan berhasil dibuat. Tidak ada token atau data tra
 Komponen shadcn/ui yang wajib tersedia di `shared/ui`: Button, Input, Label, Textarea, Select, Checkbox, RadioGroup, Switch, Dialog, AlertDialog, Sheet, DropdownMenu, Tabs, Tooltip, Toast (Sonner), Table, Badge, Card, Skeleton, Separator, Popover, Command (combobox), Calendar (Date range).
 
 Komponen aplikasi di `shared/components`:
+
 - `Money`: menampilkan integer rupiah dengan `Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', maximumFractionDigits: 0})`, angka tabular, negatif dengan warna danger.
 - `StatusBadge`: order, payment, shift. Selalu ada ikon dan teks.
 - `DataTable`: sort, pilihan baris, header sticky, pada layar sempit berubah menjadi kartu.
@@ -826,6 +834,7 @@ Komponen aplikasi di `shared/components`:
 ### 12.8 Realtime
 
 Hook `useRealtime({ table, filter, onChange })` di `shared/hooks`:
+
 - Membuat channel `realtime:<table>:<filter>` saat mount.
 - Memanggil `onChange` untuk setiap event.
 - `useEffect` cleanup memanggil `supabase.removeChannel(channel)`.
@@ -839,15 +848,18 @@ Hook `useRealtime({ table, filter, onChange })` di `shared/hooks`:
 ## 13. Layar dan Perilaku
 
 ### 13.1 Login
+
 - Email dan password. Pesan error umum. Lockout 5 kali gagal, 30 detik, dengan hitung mundur.
 - Menampilkan nama dan logo toko dari `store_settings` (anon boleh membaca).
 
 ### 13.2 AppShell
+
 - Header: logo dan nama toko, nama dan peran staff, badge shift (terbuka dengan jam buka, atau tertutup), status koneksi, status printer, menu profil (tema, keluar).
 - Sidebar di desktop (≥1024 px), dapat diciutkan. Bottom navigation di mobile (<768 px) dengan lima item utama dan menu "Lainnya".
 - Badge jumlah: pesanan aktif, pembayaran menunggu verifikasi, bahan menipis.
 
 ### 13.3 POS (`/pos`)
+
 Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan. Di bawah 1024 px, keranjang menjadi bottom sheet dengan ringkasan (jumlah item dan total).
 
 - Kategori sebagai tab horizontal yang bisa digeser. Pencarian menu di atas grid.
@@ -865,12 +877,14 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Pembuatan pesanan memblokir klik ganda dan menampilkan indikator di tombol.
 
 ### 13.4 Open bill (`/pos/open-bill/:orderId`)
+
 - Header: nomor pesanan, meja atau pelanggan, waktu buka, total sementara.
 - Kiri: menu dengan tombol Tambah ke bill. Kanan: item bill dikelompokkan per waktu penambahan. Item yang sudah masuk dapur ditandai "Dikirim".
 - Tutup bill membuka drawer pembayaran dengan total final, voucher opsional, dan split.
 - Bill tertutup menjadi tampilan baca saja.
 
 ### 13.5 Pesanan (`/orders`)
+
 - Tab: Semua, Baru, Diproses, Menunggu diambil, Selesai, Dibatalkan. Setiap tab menampilkan jumlah.
 - Filter: tipe, open bill, rentang tanggal, kasir.
 - Desktop: papan kolom untuk Baru, Diproses, Menunggu diambil. Mobile: daftar kartu dengan tab.
@@ -880,6 +894,7 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Realtime aktif sesuai 12.8.
 
 ### 13.6 Riwayat (`/history`)
+
 - Tabel dengan kolom: nomor, waktu, tipe, ringkasan item, metode, total, status, kasir.
 - Filter: rentang tanggal dengan preset (hari ini, kemarin, 7 hari, bulan ini), status, metode, kasir, tipe, pencarian nomor.
 - Ringkasan di atas tabel dari hasil filter.
@@ -887,12 +902,14 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Pagination 25 baris, pilihan 50 dan 100. Tanpa infinite scroll.
 
 ### 13.7 Shift (`/shift`)
+
 - Tanpa shift terbuka: kartu buka kasir dengan saldo awal.
 - Shift terbuka: ringkasan real-time (jumlah pesanan, total per metode, kas yang diharapkan).
 - Tutup kasir dua langkah: ringkasan, lalu input kas fisik. Selisih tampil dengan teks ("Kurang Rp 5.000", "Pas", "Lebih Rp 2.000"). Tombol tutup nonaktif jika ada open bill, dengan penjelasan.
 - Riwayat shift dengan selisih dan tombol cetak ringkasan.
 
 ### 13.8 Menu (`/menu`)
+
 - Dua kolom: kategori dan item. Urutan diatur dengan seret atau tombol panah.
 - Form item: nama, deskripsi, kategori, harga, gambar (dikompres di browser ke maks 800 px, lalu unggah), status aktif, status tersedia, modifier, resep.
 - Resep: tabel bahan dengan jumlah per porsi, validasi > 0.
@@ -900,11 +917,13 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Hapus item = nonaktifkan.
 
 ### 13.9 Inventaris (`/inventory`)
+
 - Tabel bahan: nama, satuan, stok, stok minimum, nilai stok, status (aman, menipis, habis).
 - Aksi: pembelian, waste, penyesuaian (dengan alasan). Riwayat pergerakan per bahan dengan tautan ke referensi.
 - Stok negatif: tombol hanya untuk super admin, dengan konfirmasi ketik ulang nama bahan.
 
 ### 13.10 Opname (`/inventory/opname`)
+
 - Daftar opname dengan status draft dan finalized.
 - Halaman detail: kolom bahan, stok sistem (baca saja), stok hitung (input numerik), selisih otomatis. Enter pindah ke baris berikutnya.
 - Simpan otomatis dengan indikator "Menyimpan…" dan "Tersimpan".
@@ -912,6 +931,7 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Finalisasi: ringkasan selisih, lalu ketik ulang kata `FINALISASI`. Setelah itu halaman baca saja dengan banner.
 
 ### 13.11 Voucher (`/vouchers`)
+
 - Daftar: kode, nama, tipe, nilai, periode, pemakaian per kuota, status, aksi.
 - Form dengan pratinjau: contoh belanja Rp 100.000 dan potongan yang dihitung.
 - Kode bisa dibuat otomatis. Validasi keunikan asinkron dengan debounce 300 ms.
@@ -919,11 +939,13 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Laporan pemakaian per voucher di tab terpisah.
 
 ### 13.12 Rekening (`/payment-accounts`)
+
 - Kartu rekening: penyedia, pemilik, nomor (masked di daftar), status, urutan.
 - Form dengan validasi nomor (hanya angka).
 - Nonaktifkan, bukan hapus.
 
 ### 13.13 Verifikasi pembayaran (`/payment-verification`)
+
 - Antrian `pending_verification`, paling lama di atas.
 - Layar dua kolom: bukti (zoom, putar, buka di tab baru) dan detail (nomor pesanan, nominal, rekening tujuan, referensi, waktu).
 - Setujui dan Tolak. Tolak wajib alasan.
@@ -931,6 +953,7 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Bukti tidak tersedia: tampil "Bukti belum dilampirkan", verifikasi tetap bisa dengan catatan.
 
 ### 13.14 Laporan (`/reports`)
+
 - Pilih rentang tanggal dengan preset. Tombol terapkan memanggil `get_sales_report`.
 - Kartu ringkasan: total penjualan, transaksi, rata-rata, refund, diskon, layanan dan pajak, void.
 - Tab: Per hari, Per jam, Metode, Kategori, Item, Voucher.
@@ -938,22 +961,26 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Baris "Diskon voucher" ditampilkan di tab Item sesuai D8.
 
 ### 13.15 Pengaturan (`/settings`, `/settings/branding`, `/settings/staff`)
+
 - Umum: identitas toko, pajak, layanan, pembulatan, `require_verified_payment`, jam buka (tampilan).
 - Branding: logo (pratinjau di header, login, struk), warna dengan rasio kontras dan status lulus atau gagal, font dengan pratinjau. Tombol Batal kembali ke nilai tersimpan.
 - Struk: header, footer, ukuran kertas.
 - Staff: tabel dengan nama, email, peran, status. Tambah staff lewat dialog (email, nama, peran awal, password sementara). Ubah peran dan nonaktifkan dengan konfirmasi. Super admin tidak bisa mengubah diri sendiri.
 
 ### 13.16 Printer (`/settings/printer`)
+
 - Status: terhubung, tidak terhubung, tidak didukung.
 - Hubungkan printer (Web Bluetooth), Cetak uji, ukuran kertas perangkat, jumlah salinan default.
 - Jika browser tidak mendukung Web Bluetooth, halaman menjelaskan batasan dan mengaktifkan mode cetak browser.
 
 ### 13.17 Audit (`/audit`)
+
 - Tabel dengan filter tindakan, aktor, entitas, rentang tanggal.
 - Payload ditampilkan sebagai daftar pasangan kunci-nilai yang mudah dibaca.
 - Hanya baca.
 
 ### 13.18 Riwayat untuk sesi dan keamanan UI
+
 - Halaman 403 dengan tombol kembali ke halaman utama peran tersebut.
 - Halaman 404 dengan tautan ke POS atau Pesanan.
 
@@ -974,6 +1001,7 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 ## 15. Aksesibilitas, Responsivitas, dan Performa
 
 ### 15.1 Aksesibilitas (WCAG 2.1 AA)
+
 - Navigasi keyboard penuh. Urutan fokus sesuai urutan visual. Indikator fokus 2 px dengan offset 2 px.
 - Skip link "Lewati ke konten utama" di setiap halaman.
 - Satu `h1` per halaman. Landmark `header`, `nav`, `main`, `aside`.
@@ -987,24 +1015,26 @@ Tata letak tablet landscape: kategori dan grid menu di kiri, keranjang di kanan.
 - Axe dijalankan di setiap halaman utama pada tema terang dan gelap.
 
 ### 15.2 Responsivitas
-| Breakpoint | Lebar | Perilaku |
-|---|---|---|
-| Mobile | <768 px | Bottom navigation, tabel jadi kartu, keranjang jadi bottom sheet, drawer penuh layar |
-| Tablet | 768–1023 px | Bottom navigation dengan label, POS dua kolom |
-| Desktop | ≥1024 px | Sidebar, POS tiga area |
-| Layar besar | ≥1440 px | Grid menu lebih lebar |
+
+| Breakpoint  | Lebar       | Perilaku                                                                             |
+| ----------- | ----------- | ------------------------------------------------------------------------------------ |
+| Mobile      | <768 px     | Bottom navigation, tabel jadi kartu, keranjang jadi bottom sheet, drawer penuh layar |
+| Tablet      | 768–1023 px | Bottom navigation dengan label, POS dua kolom                                        |
+| Desktop     | ≥1024 px    | Sidebar, POS tiga area                                                               |
+| Layar besar | ≥1440 px    | Grid menu lebih lebar                                                                |
 
 POS dioptimalkan untuk tablet landscape. Dalam potret, POS menampilkan saran rotasi tetapi tetap berfungsi. Mobile-first dengan Tailwind.
 
 ### 15.3 Performa
-| Metrik | Target |
-|---|---|
+
+| Metrik                                                              | Target             |
+| ------------------------------------------------------------------- | ------------------ |
 | LCP halaman POS (build production, mobile emulasi, login dilakukan) | di bawah 2,5 detik |
-| Skor Lighthouse performa POS dan Pesanan | minimal 85 |
-| JavaScript awal (gzip) | di bawah 180 KB |
-| Chunk per route (gzip) | di bawah 80 KB |
-| CLS | di bawah 0,05 |
-| INP tambah item dan tombol utama | di bawah 200 ms |
+| Skor Lighthouse performa POS dan Pesanan                            | minimal 85         |
+| JavaScript awal (gzip)                                              | di bawah 180 KB    |
+| Chunk per route (gzip)                                              | di bawah 80 KB     |
+| CLS                                                                 | di bawah 0,05      |
+| INP tambah item dan tombol utama                                    | di bawah 200 ms    |
 
 Teknik: route-level lazy, `React.memo` dan `useMemo` untuk daftar besar, virtualisasi untuk riwayat dan audit (lebih dari 200 baris), gambar menu dengan `loading="lazy"` dan dimensi eksplisit, ikon diimpor per nama, tanpa library grafik besar.
 
@@ -1024,21 +1054,22 @@ Teknik: route-level lazy, `React.memo` dan `useMemo` untuk daftar besar, virtual
 
 ### 17.1 Lapisan
 
-| Lapisan | Alat | Cakupan wajib | Ambang |
-|---|---|---|---|
-| Unit logika | Vitest | `shared/lib/money.ts`, `contrast.ts`, `receipt.ts`, `errors.ts`, `csv.ts`, semua `logic.ts` | Baris 90%, cabang 80% |
-| Komponen | Vitest + Testing Library | Semua komponen `shared/ui` dan `shared/components`, form utama, POS, verifikasi | Lulus semua test |
-| Hook | Vitest | `useRealtime`, `useShortcut`, store Zustand | Lulus |
-| Database | pgTAP (`supabase test db`) | Setiap RPC: nilai kembali, setiap kode error, RLS per peran, atomisitas | 100% RPC tercakup |
-| Konsistensi skema | pgTAP | `current_qty = sum(qty_change)` per bahan, tidak ada stok negatif, `expected_cash` sama dengan jumlah pembayaran tunai, laporan = pembayaran verified | Lulus |
-| E2E | Playwright | Lihat 17.3 | Lulus di Chromium, Firefox, WebKit, dan dua viewport mobile |
-| Aksesibilitas | @axe-core/playwright | Semua route utama | Nol pelanggaran serius atau kritis |
-| Performa | Lighthouse CI | `/login`, `/pos`, `/orders` (lihat D14) | Skor performa minimal 85 |
-| Keamanan | gitleaks, `pnpm audit --audit-level=high`, pemeriksaan bundle | Seluruh repo dan bundle | Nol temuan |
+| Lapisan           | Alat                                                          | Cakupan wajib                                                                                                                                         | Ambang                                                      |
+| ----------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Unit logika       | Vitest                                                        | `shared/lib/money.ts`, `contrast.ts`, `receipt.ts`, `errors.ts`, `csv.ts`, semua `logic.ts`                                                           | Baris 90%, cabang 80%                                       |
+| Komponen          | Vitest + Testing Library                                      | Semua komponen `shared/ui` dan `shared/components`, form utama, POS, verifikasi                                                                       | Lulus semua test                                            |
+| Hook              | Vitest                                                        | `useRealtime`, `useShortcut`, store Zustand                                                                                                           | Lulus                                                       |
+| Database          | pgTAP (`supabase test db`)                                    | Setiap RPC: nilai kembali, setiap kode error, RLS per peran, atomisitas                                                                               | 100% RPC tercakup                                           |
+| Konsistensi skema | pgTAP                                                         | `current_qty = sum(qty_change)` per bahan, tidak ada stok negatif, `expected_cash` sama dengan jumlah pembayaran tunai, laporan = pembayaran verified | Lulus                                                       |
+| E2E               | Playwright                                                    | Lihat 17.3                                                                                                                                            | Lulus di Chromium, Firefox, WebKit, dan dua viewport mobile |
+| Aksesibilitas     | @axe-core/playwright                                          | Semua route utama                                                                                                                                     | Nol pelanggaran serius atau kritis                          |
+| Performa          | Lighthouse CI                                                 | `/login`, `/pos`, `/orders` (lihat D14)                                                                                                               | Skor performa minimal 85                                    |
+| Keamanan          | gitleaks, `pnpm audit --audit-level=high`, pemeriksaan bundle | Seluruh repo dan bundle                                                                                                                               | Nol temuan                                                  |
 
 ### 17.2 Test database wajib (pgTAP)
 
 Setiap item di bawah wajib memiliki assertion:
+
 1. `create_order` menghitung total sesuai 10.1 untuk kombinasi: tanpa pajak, pajak saja, layanan dan pajak, pembulatan `up_100` dan `nearest_100`, voucher persen dengan dan tanpa `max_discount`, voucher nominal.
 2. Pesanan tanpa shift terbuka ditolak (`SHIFT_NOT_OPEN`).
 3. Dua shift terbuka ditolak (unique index).
@@ -1067,6 +1098,7 @@ Setiap item di bawah wajib memiliki assertion:
 ### 17.3 E2E wajib (Playwright)
 
 Setiap skenario memakai seed terpisah. Database direset sebelum suite.
+
 1. Login admin, lalu super admin. Login salah lima kali memunculkan lockout.
 2. Admin membuka `/settings/staff` dan melihat halaman 403.
 3. Buka shift, buat pesanan tunai, selesaikan, dan cetak struk (mock printer).
@@ -1102,6 +1134,7 @@ Setiap skenario memakai seed terpisah. Database direset sebelum suite.
 ### 18.1 Pipeline pull request dan push ke main
 
 Berurutan, semua wajib hijau:
+
 1. `pnpm install --frozen-lockfile`
 2. `pnpm lint`
 3. `pnpm format:check`

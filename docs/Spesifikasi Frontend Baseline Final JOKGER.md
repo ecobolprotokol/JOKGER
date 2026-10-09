@@ -37,6 +37,8 @@ Amandemen ini ditemukan saat menyusun spesifikasi frontend. Setiap amandemen waj
 
 **A5. Batas idle dan sesi di layar POS.** Di layar POS, idle timer tetap berjalan. Keranjang tidak hilang saat logout paksa karena disimpan di localStorage (bagian 8.3), tetapi isi keranjang tidak boleh dikirim ulang tanpa login baru.
 
+**A6. Versi dependency untuk keamanan.** Mengikuti keputusan D17 pada Spesifikasi Teknis, Vite minimal 6.4.3 dan Vitest minimal 4.0.18. React tetap 18.3.x dan `@vitejs/plugin-react` tetap 5.x. Advisory `GHSA-vfj7-8cjw-p6xm` pada `braces@3.0.3` belum memiliki patch upstream per 2026-10-09 dan terbawa oleh Tailwind 3/lint-staged 15. Ambang audit tidak boleh diturunkan; deployment production menunggu patch atau keputusan migrasi dependency yang terdampak.
+
 ---
 
 ## 3. Ruang Lingkup dan Sumber Kebenaran
@@ -44,6 +46,7 @@ Amandemen ini ditemukan saat menyusun spesifikasi frontend. Setiap amandemen waj
 **Termasuk:** seluruh route, layout, state, form, komponen, realtime, cetak struk di browser, tema dan branding saat runtime, aksesibilitas, responsivitas, performa, dan pengujian frontend.
 
 **Sumber kebenaran:**
+
 - Aturan bisnis, RPC, error, dan RLS: Spesifikasi Baseline Final.
 - Visual, layout, dan interaksi: dokumen ini.
 - Jika bertentangan, Spesifikasi Baseline Final menang untuk data dan logika; dokumen ini menang untuk tampilan dan interaksi.
@@ -52,28 +55,28 @@ Amandemen ini ditemukan saat menyusun spesifikasi frontend. Setiap amandemen waj
 
 ## 4. Stak dan Versi Frontend
 
-| Paket | Versi | Fungsi |
-|---|---|---|
-| react, react-dom | 18.3.x | UI |
-| typescript | 5.5+ | Bahasa, `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
-| vite, @vitejs/plugin-react | 5.x | Build dan dev server |
-| react-router-dom | 6.28+ | Routing dengan `lazy` |
-| @tanstack/react-query | 5.x | Data server |
-| zustand | 5.x | State lokal (keranjang, perangkat, tema) |
-| react-hook-form, @hookform/resolvers | 7.x, 3.x | Form |
-| zod | 3.23+ | Validasi |
-| @supabase/supabase-js | 2.x | Akses Supabase |
-| tailwindcss | 3.4.x | Styling |
-| @radix-ui/* | sesuai shadcn | Primitif aksesibel |
-| class-variance-authority, clsx, tailwind-merge | terbaru | Varian komponen |
-| sonner | terbaru | Toast |
-| lucide-react | terbaru | Ikon |
-| date-fns | 3.x | Tanggal |
-| @fontsource/inter, @fontsource/plus-jakarta-sans, @fontsource/poppins | terbaru | Font lokal |
-| @point-of-sale/receipt-printer-encoder | terbaru | ESC/POS |
-| @sentry/react | 8.x | Error tracking |
-| vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, jsdom | vitest 2.x | Test |
-| @playwright/test, @axe-core/playwright | terbaru | E2E dan aksesibilitas |
+| Paket                                                                                         | Versi                   | Fungsi                                                                     |
+| --------------------------------------------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------- |
+| react, react-dom                                                                              | 18.3.x                  | UI                                                                         |
+| typescript                                                                                    | 5.5+                    | Bahasa, `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
+| vite, @vitejs/plugin-react                                                                    | Vite 6.4.3+, plugin 5.x | Build dan dev server; batas minimum keamanan A6                            |
+| react-router-dom                                                                              | 6.28+                   | Routing dengan `lazy`                                                      |
+| @tanstack/react-query                                                                         | 5.x                     | Data server                                                                |
+| zustand                                                                                       | 5.x                     | State lokal (keranjang, perangkat, tema)                                   |
+| react-hook-form, @hookform/resolvers                                                          | 7.x, 3.x                | Form                                                                       |
+| zod                                                                                           | 3.23+                   | Validasi                                                                   |
+| @supabase/supabase-js                                                                         | 2.x                     | Akses Supabase                                                             |
+| tailwindcss                                                                                   | 3.4.x                   | Styling                                                                    |
+| @radix-ui/*                                                                                   | sesuai shadcn           | Primitif aksesibel                                                         |
+| class-variance-authority, clsx, tailwind-merge                                                | terbaru                 | Varian komponen                                                            |
+| sonner                                                                                        | terbaru                 | Toast                                                                      |
+| lucide-react                                                                                  | terbaru                 | Ikon                                                                       |
+| date-fns                                                                                      | 3.x                     | Tanggal                                                                    |
+| @fontsource/inter, @fontsource/plus-jakarta-sans, @fontsource/poppins                         | terbaru                 | Font lokal                                                                 |
+| @point-of-sale/receipt-printer-encoder                                                        | terbaru                 | ESC/POS                                                                    |
+| @sentry/react                                                                                 | 8.x                     | Error tracking                                                             |
+| vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, jsdom | vitest 4.0.18+          | Test; batas minimum keamanan A6                                            |
+| @playwright/test, @axe-core/playwright                                                        | terbaru                 | E2E dan aksesibilitas                                                      |
 
 Dilarang menambah UI library lain (MUI, Chakra, Ant Design, dan sejenisnya).
 
@@ -157,54 +160,59 @@ Fitur daftar: `auth`, `pos`, `open-bill`, `orders`, `history`, `shift`, `menu`, 
 
 ### 6.3 Route
 
-| Path | Peran | Layout | Catatan |
-|---|---|---|---|
-| `/login` | publik | Kosong | Redirect ke `/` jika sudah login |
-| `/` | staff | - | Redirect: shift terbuka → `/pos`, tidak ada → `/shift` |
-| `/pos` | staff | PosLayout | |
-| `/pos/open-bill/:orderId` | staff | PosLayout | |
-| `/orders` | staff | AppShell | Filter via query string |
-| `/orders/:orderId` | staff | AppShell | Panel detail di desktop, halaman penuh di mobile |
-| `/history` | staff | AppShell | |
-| `/shift` | staff | AppShell | |
-| `/menu` | staff | AppShell | |
-| `/inventory` | staff | AppShell | |
-| `/inventory/opname` | staff | AppShell | |
-| `/inventory/opname/:opnameId` | staff | AppShell | |
-| `/vouchers` | staff | AppShell | |
-| `/payment-accounts` | staff | AppShell | |
-| `/payment-verification` | staff | AppShell | |
-| `/reports` | staff | AppShell | |
-| `/settings` | super_admin | AppShell | |
-| `/settings/branding` | super_admin | AppShell | |
-| `/settings/staff` | super_admin | AppShell | |
-| `/settings/printer` | staff | AppShell | D9 |
-| `/audit` | super_admin | AppShell | |
-| `/403` | publik | AppShell | |
-| `*` | publik | Kosong | 404 |
+| Path                          | Peran       | Layout    | Catatan                                                |
+| ----------------------------- | ----------- | --------- | ------------------------------------------------------ |
+| `/login`                      | publik      | Kosong    | Redirect ke `/` jika sudah login                       |
+| `/`                           | staff       | -         | Redirect: shift terbuka → `/pos`, tidak ada → `/shift` |
+| `/pos`                        | staff       | PosLayout |                                                        |
+| `/pos/open-bill/:orderId`     | staff       | PosLayout |                                                        |
+| `/orders`                     | staff       | AppShell  | Filter via query string                                |
+| `/orders/:orderId`            | staff       | AppShell  | Panel detail di desktop, halaman penuh di mobile       |
+| `/history`                    | staff       | AppShell  |                                                        |
+| `/shift`                      | staff       | AppShell  |                                                        |
+| `/menu`                       | staff       | AppShell  |                                                        |
+| `/inventory`                  | staff       | AppShell  |                                                        |
+| `/inventory/opname`           | staff       | AppShell  |                                                        |
+| `/inventory/opname/:opnameId` | staff       | AppShell  |                                                        |
+| `/vouchers`                   | staff       | AppShell  |                                                        |
+| `/payment-accounts`           | staff       | AppShell  |                                                        |
+| `/payment-verification`       | staff       | AppShell  |                                                        |
+| `/reports`                    | staff       | AppShell  |                                                        |
+| `/settings`                   | super_admin | AppShell  |                                                        |
+| `/settings/branding`          | super_admin | AppShell  |                                                        |
+| `/settings/staff`             | super_admin | AppShell  |                                                        |
+| `/settings/printer`           | staff       | AppShell  | D9                                                     |
+| `/audit`                      | super_admin | AppShell  |                                                        |
+| `/403`                        | publik      | AppShell  |                                                        |
+| `*`                           | publik      | Kosong    | 404                                                    |
 
 Semua route selain `/login` dimuat dengan `lazy`. Setiap route dibungkus `RouteErrorBoundary`.
 
 ### 6.4 Guard dan sesi
 
 **RequireAuth**
+
 - Saat sesi belum diketahui, tampilkan skeleton layar penuh dengan `role="status"`, bukan halaman kosong.
 - Jika tidak ada sesi, redirect ke `/login` dengan query `?redirect=<path>`. Setelah login, kembali ke path tersebut, kecuali path tersebut `/login`.
 - Jika sesi ada tetapi tidak ada baris `profiles` yang bisa dibaca (akun nonaktif, atau RLS menolak), lakukan sign out dan tampilkan pesan "Akun Anda tidak aktif. Hubungi pemilik." di layar login.
 
 **RequireRole**
+
 - Membaca `role` dari sesi. Jika tidak cocok, render `/403`. URL tidak berubah.
 - Pemeriksaan ini hanya untuk UX. Keamanan tetap dari RLS dan RPC.
 
 **Idle timeout (`useIdleTimeout`)**
+
 - Mencatat aktivitas dari `pointerdown`, `keydown`, `touchstart`, `scroll` dengan throttle 30 detik.
 - Memeriksa setiap 60 detik. Jika idle 8 jam, sign out, bersihkan query cache, dan tampilkan pesan "Sesi berakhir karena tidak ada aktivitas."
 - Sebelum sign out karena idle, tidak ada peringatan. Ini disengaja untuk menghindari gangguan di kasir.
 
 **Refresh token**
+
 - Ditangani supabase-js. Kegagalan refresh memicu sign out dengan pesan "Sesi berakhir. Masuk kembali."
 
 **Sign out**
+
 - Panggil `supabase.auth.signOut()`, `queryClient.clear()`, dan bersihkan `cartStore`? Tidak. Keranjang dipertahankan untuk login berikutnya di perangkat yang sama, kecuali pengguna memilih "Kosongkan keranjang" sebelum keluar. Jika keranjang berisi item, tampilkan konfirmasi "Keranjang belum dibuat pesanan. Tetap simpan?" dengan dua pilihan.
 
 ### 6.5 Redirect setelah login
@@ -227,14 +235,15 @@ Setiap fungsi di `api.ts` mengembalikan `Promise<Result<T>>`, bukan melempar err
 type Result<T> = { ok: true; data: T } | { ok: false; error: AppError };
 
 type AppError = {
-  code: string;        // kode dari bagian 11 spesifikasi baseline, atau 'UNKNOWN'
-  message: string;     // teks dari strings/id.ts, sudah diterjemahkan
+  code: string; // kode dari bagian 11 spesifikasi baseline, atau 'UNKNOWN'
+  message: string; // teks dari strings/id.ts, sudah diterjemahkan
   retryable: boolean;
-  raw?: unknown;       // hanya untuk logger, tidak pernah dirender
+  raw?: unknown; // hanya untuk logger, tidak pernah dirender
 };
 ```
 
 `shared/lib/errors.ts` menerjemahkan:
+
 - `error.message` dari PostgreSQL (kode error seperti `SHIFT_NOT_OPEN`) ke `AppError`.
 - Status HTTP dari endpoint staff ke `AppError`.
 - Error jaringan (`TypeError: Failed to fetch`) ke `NETWORK_OFFLINE`.
@@ -251,28 +260,28 @@ type AppError = {
 
 ### 7.3 Query key dan tabel invalidasi
 
-| Query key | Isi | Diinvalidasi oleh |
-|---|---|---|
-| `['session']` | profil dan peran | sign in, sign out, `set_staff_role` (diri sendiri tidak diizinkan, tetap dipantau) |
-| `['settings']` | `store_settings` | `update_store_settings` |
-| `['payment-accounts']` | rekening | `upsert_payment_account`, `set_payment_account_active` |
-| `['shift', 'active']` | shift terbuka | `open_shift`, `close_shift` |
-| `['shift', 'history']` | daftar shift | `close_shift` |
-| `['menu', 'categories']` | kategori | `upsert_category` |
-| `['menu', 'items']` | menu dan modifier | `upsert_menu_item`, `set_menu_item_available`, `upsert_recipe` |
-| `['orders', filter]` | daftar pesanan | aksi apa pun pada pesanan, realtime `orders` |
-| `['order', orderId]` | detail pesanan | aksi pada pesanan tersebut, realtime |
-| `['open-bills']` | daftar open bill | `create_order` (bill), `close_open_bill`, `cancel_order` |
-| `['payments', 'pending']` | antrian verifikasi | `submit_payment`, `verify_payment`, realtime `payments` |
-| `['history', filter]` | riwayat | semua penulisan transaksi |
-| `['inventory', 'items']` | bahan | `record_stock_movement`, `upsert_inventory_item`, transaksi yang memakai stok |
-| `['inventory', 'movements', itemId]` | ledger | `record_stock_movement`, transaksi, opname |
-| `['opnames']` | daftar opname | `open_stock_opname`, `finalize_stock_opname` |
-| `['opname', opnameId]` | detail opname | `save_stock_opname_count`, `finalize_stock_opname` |
-| `['vouchers', filter]` | daftar voucher | `upsert_voucher`, `set_voucher_active`, transaksi yang memakai voucher |
-| `['report', from, to]` | laporan | semua penulisan transaksi (refetch saat fokus) |
-| `['staff']` | daftar staff | endpoint create-staff, `set_staff_role`, `set_staff_active` |
-| `['audit', filter]` | audit log | (tidak diinvalidasi, hanya saat fokus) |
+| Query key                            | Isi                | Diinvalidasi oleh                                                                  |
+| ------------------------------------ | ------------------ | ---------------------------------------------------------------------------------- |
+| `['session']`                        | profil dan peran   | sign in, sign out, `set_staff_role` (diri sendiri tidak diizinkan, tetap dipantau) |
+| `['settings']`                       | `store_settings`   | `update_store_settings`                                                            |
+| `['payment-accounts']`               | rekening           | `upsert_payment_account`, `set_payment_account_active`                             |
+| `['shift', 'active']`                | shift terbuka      | `open_shift`, `close_shift`                                                        |
+| `['shift', 'history']`               | daftar shift       | `close_shift`                                                                      |
+| `['menu', 'categories']`             | kategori           | `upsert_category`                                                                  |
+| `['menu', 'items']`                  | menu dan modifier  | `upsert_menu_item`, `set_menu_item_available`, `upsert_recipe`                     |
+| `['orders', filter]`                 | daftar pesanan     | aksi apa pun pada pesanan, realtime `orders`                                       |
+| `['order', orderId]`                 | detail pesanan     | aksi pada pesanan tersebut, realtime                                               |
+| `['open-bills']`                     | daftar open bill   | `create_order` (bill), `close_open_bill`, `cancel_order`                           |
+| `['payments', 'pending']`            | antrian verifikasi | `submit_payment`, `verify_payment`, realtime `payments`                            |
+| `['history', filter]`                | riwayat            | semua penulisan transaksi                                                          |
+| `['inventory', 'items']`             | bahan              | `record_stock_movement`, `upsert_inventory_item`, transaksi yang memakai stok      |
+| `['inventory', 'movements', itemId]` | ledger             | `record_stock_movement`, transaksi, opname                                         |
+| `['opnames']`                        | daftar opname      | `open_stock_opname`, `finalize_stock_opname`                                       |
+| `['opname', opnameId]`               | detail opname      | `save_stock_opname_count`, `finalize_stock_opname`                                 |
+| `['vouchers', filter]`               | daftar voucher     | `upsert_voucher`, `set_voucher_active`, transaksi yang memakai voucher             |
+| `['report', from, to]`               | laporan            | semua penulisan transaksi (refetch saat fokus)                                     |
+| `['staff']`                          | daftar staff       | endpoint create-staff, `set_staff_role`, `set_staff_active`                        |
+| `['audit', filter]`                  | audit log          | (tidak diinvalidasi, hanya saat fokus)                                             |
 
 Setiap mutasi wajib mendefinisikan `invalidate` secara eksplisit sesuai tabel ini.
 
@@ -346,9 +355,9 @@ type CartState = {
 ```ts
 type DeviceState = {
   printer: { id: string; name: string } | null;
-  paperWidthOverride: 58 | 80 | null;     // null = pakai pengaturan toko (D9)
-  shortcutsEnabled: boolean;              // default true
-  soundOnNewOrder: boolean;               // default false
+  paperWidthOverride: 58 | 80 | null; // null = pakai pengaturan toko (D9)
+  shortcutsEnabled: boolean; // default true
+  soundOnNewOrder: boolean; // default false
 };
 ```
 
@@ -399,18 +408,18 @@ Hanya di `localStorage` dengan key `jokger.auth.lockout.v1`, berisi `{ failures:
 
 Setiap field memakai `FormField` yang berisi label (selalu terlihat), deskripsi opsional, pesan error, dan input.
 
-| Komponen | Perilaku |
-|---|---|
-| `TextField` | Maks panjang tampil dengan penghitung jika ada batas |
-| `MoneyField` | Hanya digit, format ribuan saat blur, `inputMode="numeric"`, nilai disimpan sebagai integer |
-| `QuantityField` | Tombol `−` dan `+` 44 px, rentang 1–100 |
-| `PhoneField` | `inputMode="tel"`, hanya digit dan `+` |
-| `AccountNumberField` | Hanya digit, tanpa spasi |
-| `SelectField` | Native select untuk ≤ 7 pilihan, `Combobox` untuk lebih banyak |
-| `DateRangeField` | Preset: hari ini, kemarin, 7 hari, bulan ini, bulan lalu, kustom |
-| `ColorField` | Input hex, pratinjau, rasio kontras, status lulus atau gagal |
-| `ImageField` | Pilih file, validasi tipe dan ukuran, pratinjau, hapus |
-| `FileProofField` | Sama seperti `ImageField` dengan batas 5 MB, JPG, PNG, WEBP |
+| Komponen             | Perilaku                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| `TextField`          | Maks panjang tampil dengan penghitung jika ada batas                                        |
+| `MoneyField`         | Hanya digit, format ribuan saat blur, `inputMode="numeric"`, nilai disimpan sebagai integer |
+| `QuantityField`      | Tombol `−` dan `+` 44 px, rentang 1–100                                                     |
+| `PhoneField`         | `inputMode="tel"`, hanya digit dan `+`                                                      |
+| `AccountNumberField` | Hanya digit, tanpa spasi                                                                    |
+| `SelectField`        | Native select untuk ≤ 7 pilihan, `Combobox` untuk lebih banyak                              |
+| `DateRangeField`     | Preset: hari ini, kemarin, 7 hari, bulan ini, bulan lalu, kustom                            |
+| `ColorField`         | Input hex, pratinjau, rasio kontras, status lulus atau gagal                                |
+| `ImageField`         | Pilih file, validasi tipe dan ukuran, pratinjau, hapus                                      |
+| `FileProofField`     | Sama seperti `ImageField` dengan batas 5 MB, JPG, PNG, WEBP                                 |
 
 ### 9.3 Perlindungan perubahan belum disimpan
 
@@ -431,23 +440,23 @@ Setiap field memakai `FormField` yang berisi label (selalu terlihat), deskripsi 
 
 Semua warna didefinisikan sebagai CSS custom properties di `:root` (terang) dan `.dark` (gelap). Tailwind memakai `var(--token)`.
 
-| Token | Terang | Gelap | Fungsi |
-|---|---|---|---|
-| `--bg` | `#FAF7F3` | `#17120E` | Latar halaman |
-| `--surface` | `#FFFFFF` | `#221B16` | Kartu, panel |
-| `--surface-raised` | `#FFFFFF` | `#2B231D` | Modal, dropdown |
-| `--border` | `#E7DED4` | `#3A3029` | Garis |
-| `--text` | `#1F1813` | `#F3ECE4` | Teks utama |
-| `--text-muted` | `#6B5D52` | `#B5A89B` | Teks sekunder |
-| `--brand` | dari store | dari store | Tombol primer |
-| `--brand-hover` | turunan | turunan | Hover |
-| `--brand-contrast` | otomatis | otomatis | Teks di atas brand |
-| `--accent` | dari store | dari store | Latar lembut |
-| `--success` | `#2E7D4F` | `#4CAF7A` | Selesai, terverifikasi |
-| `--warning` | `#B26A00` | `#E0A030` | Menunggu, menipis |
-| `--danger` | `#B42318` | `#F87171` | Void, batal, selisih |
-| `--info` | `#1D5FA8` | `#60A5FA` | Diproses |
-| `--focus` | `--brand` | `--brand` | Ring fokus |
+| Token              | Terang     | Gelap      | Fungsi                 |
+| ------------------ | ---------- | ---------- | ---------------------- |
+| `--bg`             | `#FAF7F3`  | `#17120E`  | Latar halaman          |
+| `--surface`        | `#FFFFFF`  | `#221B16`  | Kartu, panel           |
+| `--surface-raised` | `#FFFFFF`  | `#2B231D`  | Modal, dropdown        |
+| `--border`         | `#E7DED4`  | `#3A3029`  | Garis                  |
+| `--text`           | `#1F1813`  | `#F3ECE4`  | Teks utama             |
+| `--text-muted`     | `#6B5D52`  | `#B5A89B`  | Teks sekunder          |
+| `--brand`          | dari store | dari store | Tombol primer          |
+| `--brand-hover`    | turunan    | turunan    | Hover                  |
+| `--brand-contrast` | otomatis   | otomatis   | Teks di atas brand     |
+| `--accent`         | dari store | dari store | Latar lembut           |
+| `--success`        | `#2E7D4F`  | `#4CAF7A`  | Selesai, terverifikasi |
+| `--warning`        | `#B26A00`  | `#E0A030`  | Menunggu, menipis      |
+| `--danger`         | `#B42318`  | `#F87171`  | Void, batal, selisih   |
+| `--info`           | `#1D5FA8`  | `#60A5FA`  | Diproses               |
+| `--focus`          | `--brand`  | `--brand`  | Ring fokus             |
 
 ### 10.2 Turunan brand dan kontras
 
@@ -461,31 +470,31 @@ Semua warna didefinisikan sebagai CSS custom properties di `:root` (terang) dan 
 
 ### 10.3 Status (wajib ikon dan teks)
 
-| Status | Label | Warna | Ikon |
-|---|---|---|---|
-| new | Baru | info | circle-dot |
-| processing | Diproses | warning | flame |
-| ready | Menunggu diambil | brand | bell |
-| completed | Selesai | success | check |
-| cancelled | Dibatalkan | danger | x |
-| pending_verification | Menunggu verifikasi | warning | clock |
-| verified | Terverifikasi | success | badge-check |
-| rejected | Ditolak | danger | ban |
-| open (shift) | Kasir terbuka | success | unlock |
-| closed (shift) | Kasir tertutup | muted | lock |
+| Status               | Label               | Warna   | Ikon        |
+| -------------------- | ------------------- | ------- | ----------- |
+| new                  | Baru                | info    | circle-dot  |
+| processing           | Diproses            | warning | flame       |
+| ready                | Menunggu diambil    | brand   | bell        |
+| completed            | Selesai             | success | check       |
+| cancelled            | Dibatalkan          | danger  | x           |
+| pending_verification | Menunggu verifikasi | warning | clock       |
+| verified             | Terverifikasi       | success | badge-check |
+| rejected             | Ditolak             | danger  | ban         |
+| open (shift)         | Kasir terbuka       | success | unlock      |
+| closed (shift)       | Kasir tertutup      | muted   | lock        |
 
 Label status diambil dari `strings/id.ts`. Di dalam tabel, badge status dan teks diberi `aria-label` yang lengkap.
 
 ### 10.4 Tipografi
 
-| Peran | Ukuran | Berat | Tinggi baris |
-|---|---|---|---|
-| Judul halaman (`h1`) | 24 px (mobile 20 px) | 700 | 1,25 |
-| Judul panel (`h2`) | 18 px | 600 | 1,3 |
-| Label tombol | 15 px (POS 18 px) | 600 | 1,2 |
-| Isi | 15 px | 400 | 1,5 |
-| Metadata, caption | 13 px | 500 | 1,4 |
-| Total besar POS | 32 px | 700 | 1,1 |
+| Peran                | Ukuran               | Berat | Tinggi baris |
+| -------------------- | -------------------- | ----- | ------------ |
+| Judul halaman (`h1`) | 24 px (mobile 20 px) | 700   | 1,25         |
+| Judul panel (`h2`)   | 18 px                | 600   | 1,3          |
+| Label tombol         | 15 px (POS 18 px)    | 600   | 1,2          |
+| Isi                  | 15 px                | 400   | 1,5          |
+| Metadata, caption    | 13 px                | 500   | 1,4          |
+| Total besar POS      | 32 px                | 700   | 1,1          |
 
 - Font default `Inter`. Pilihan lain dari branding: `Plus Jakarta Sans`, `Poppins`, `system-ui`.
 - Setiap angka uang dan nomor pesanan memakai `font-variant-numeric: tabular-nums`.
@@ -525,33 +534,34 @@ Berisi komponen shadcn yang sudah disalin dan disesuaikan dengan token di atas:
 Button, IconButton, Input, Label, Textarea, Select, Combobox, Checkbox, RadioGroup, Switch, Dialog, AlertDialog, Sheet, DropdownMenu, Tabs, Tooltip, Popover, Table, Badge, Card, Skeleton, Separator, Calendar, Toaster (Sonner), Progress, Spinner.
 
 Aturan untuk semua primitif:
+
 - Tinggi interaktif minimal 44 px pada POS dan 40 px di layar lain. Pada mobile semua target minimal 44 px.
 - Varian yang wajib: default, secondary, ghost, danger untuk Button. Status loading menggantikan label dengan spinner, lebar tombol tetap, dan `aria-busy="true"`.
 - `disabled` memakai `aria-disabled` dan tidak menghilangkan fokus, kecuali pada tombol yang memanggil RPC yang sedang berjalan.
 
 ### 11.2 `shared/components` (komponen aplikasi)
 
-| Komponen | Props utama | Perilaku |
-|---|---|---|
-| `Money` | `value: number`, `tone?: 'default' \| 'danger' \| 'success'`, `signed?: boolean` | Format `Intl.NumberFormat('id-ID', …)`. Nilai negatif memakai tanda minus dan tone danger jika `signed`. |
-| `StatusBadge` | `kind: 'order' \| 'payment' \| 'shift'`, `status` | Dari tabel 10.3 |
-| `DataTable` | `columns`, `rows`, `getRowId`, `sort`, `selection`, `empty`, `loading` | Header sticky. Di bawah 768 px berubah menjadi daftar kartu dengan kolom utama dan detail. |
+| Komponen        | Props utama                                                                                        | Perilaku                                                                                                    |
+| --------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `Money`         | `value: number`, `tone?: 'default' \| 'danger' \| 'success'`, `signed?: boolean`                   | Format `Intl.NumberFormat('id-ID', …)`. Nilai negatif memakai tanda minus dan tone danger jika `signed`.    |
+| `StatusBadge`   | `kind: 'order' \| 'payment' \| 'shift'`, `status`                                                  | Dari tabel 10.3                                                                                             |
+| `DataTable`     | `columns`, `rows`, `getRowId`, `sort`, `selection`, `empty`, `loading`                             | Header sticky. Di bawah 768 px berubah menjadi daftar kartu dengan kolom utama dan detail.                  |
 | `ConfirmAction` | `title`, `description`, `confirmLabel`, `tone`, `requireReason?`, `requireTypedText?`, `onConfirm` | Tombol destruktif tidak fokus awal. Tombol konfirmasi nonaktif sampai alasan atau teks yang diketik sesuai. |
-| `NumericKeypad` | `onKey`, `onBackspace`, `onClear` | Untuk input uang di tablet. Target 56 px. |
-| `QuickCash` | `total`, `onPick` | Tombol: uang pas, dan pembulatan ke 10.000, 50.000, 100.000 berikutnya di atas total. |
-| `OfflineBanner` | - | Tampil saat `online = false` |
-| `RealtimeBadge` | - | Titik status dan teks "Langsung" atau "Muat ulang otomatis" |
-| `PrinterStatus` | - | Ikon dan teks status printer |
-| `ShiftBadge` | - | Status shift dan jam buka |
-| `EmptyState` | `icon`, `title`, `description`, `action?` | Satu aksi maksimal |
-| `ErrorState` | `error: AppError`, `onRetry?` | Pesan dari `AppError.message` dan tombol coba lagi jika `retryable` |
-| `SearchInput` | `value`, `onChange`, `placeholder` | Debounce 250 ms, tombol hapus saat ada isi, `type="search"` |
-| `Pagination` | `page`, `pageSize`, `total`, `onChange` | Pilihan 25, 50, 100 |
-| `KeyboardHint` | `keys` | Ditampilkan di tooltip dan bar bawah POS |
-| `PageHeader` | `title`, `description?`, `actions?` | Satu `h1` |
-| `SectionCard` | `title`, `children`, `actions?` | Kartu dengan `h2` |
-| `Stat` | `label`, `value`, `hint?` | Kartu ringkasan |
-| `Chart` | `kind: 'bar' \| 'line'`, `series`, `labels`, `formatValue` | SVG sederhana, selalu disertai `DataTable` tersembunyi visual dengan tombol unduh CSV |
+| `NumericKeypad` | `onKey`, `onBackspace`, `onClear`                                                                  | Untuk input uang di tablet. Target 56 px.                                                                   |
+| `QuickCash`     | `total`, `onPick`                                                                                  | Tombol: uang pas, dan pembulatan ke 10.000, 50.000, 100.000 berikutnya di atas total.                       |
+| `OfflineBanner` | -                                                                                                  | Tampil saat `online = false`                                                                                |
+| `RealtimeBadge` | -                                                                                                  | Titik status dan teks "Langsung" atau "Muat ulang otomatis"                                                 |
+| `PrinterStatus` | -                                                                                                  | Ikon dan teks status printer                                                                                |
+| `ShiftBadge`    | -                                                                                                  | Status shift dan jam buka                                                                                   |
+| `EmptyState`    | `icon`, `title`, `description`, `action?`                                                          | Satu aksi maksimal                                                                                          |
+| `ErrorState`    | `error: AppError`, `onRetry?`                                                                      | Pesan dari `AppError.message` dan tombol coba lagi jika `retryable`                                         |
+| `SearchInput`   | `value`, `onChange`, `placeholder`                                                                 | Debounce 250 ms, tombol hapus saat ada isi, `type="search"`                                                 |
+| `Pagination`    | `page`, `pageSize`, `total`, `onChange`                                                            | Pilihan 25, 50, 100                                                                                         |
+| `KeyboardHint`  | `keys`                                                                                             | Ditampilkan di tooltip dan bar bawah POS                                                                    |
+| `PageHeader`    | `title`, `description?`, `actions?`                                                                | Satu `h1`                                                                                                   |
+| `SectionCard`   | `title`, `children`, `actions?`                                                                    | Kartu dengan `h2`                                                                                           |
+| `Stat`          | `label`, `value`, `hint?`                                                                          | Kartu ringkasan                                                                                             |
+| `Chart`         | `kind: 'bar' \| 'line'`, `series`, `labels`, `formatValue`                                         | SVG sederhana, selalu disertai `DataTable` tersembunyi visual dengan tombol unduh CSV                       |
 
 ### 11.3 Komponen yang dilarang dibuat ulang
 
@@ -583,12 +593,12 @@ Jika sudah ada di `shared/`, dilarang membuat versi lokal di fitur. Contoh: tabe
 
 ### 12.4 Toast
 
-| Jenis | Durasi | Live region |
-|---|---|---|
-| success | 4 detik | `polite` |
-| info | 4 detik | `polite` |
-| warning | 6 detik | `polite` |
-| error | 6 detik, atau manual dismiss jika ada aksi | `assertive` |
+| Jenis   | Durasi                                     | Live region |
+| ------- | ------------------------------------------ | ----------- |
+| success | 4 detik                                    | `polite`    |
+| info    | 4 detik                                    | `polite`    |
+| warning | 6 detik                                    | `polite`    |
+| error   | 6 detik, atau manual dismiss jika ada aksi | `assertive` |
 
 - Maksimal 3 toast terlihat.
 - Toast punya tombol tutup dan, jika relevan, satu aksi (misalnya "Coba lagi", "Undo").
@@ -596,20 +606,20 @@ Jika sudah ada di `shared/`, dilarang membuat versi lokal di fitur. Contoh: tabe
 
 ### 12.5 Konfirmasi dan alasan
 
-| Aksi | Konfirmasi | Alasan | Ketik teks |
-|---|---|---|---|
-| Hapus baris keranjang | Tidak, ada undo 5 detik | Tidak | Tidak |
-| Kosongkan keranjang | Ya | Tidak | Tidak |
-| Void item | Ya | Ya | Tidak |
-| Batalkan pesanan | Ya | Ya | Tidak |
-| Retur pesanan selesai | Ya | Ya | Ya, nomor pesanan |
-| Tolak pembayaran | Ya | Ya | Tidak |
-| Tutup kasir | Ya, dua langkah | Tidak | Tidak |
-| Finalisasi opname | Ya | Tidak | Ya, `FINALISASI` |
-| Stok negatif | Ya | Ya | Ya, nama bahan |
-| Nonaktifkan staff, voucher, rekening, menu | Ya | Tidak | Tidak |
-| Ubah peran staff | Ya | Tidak | Tidak |
-| Keluar dengan keranjang berisi | Ya | Tidak | Tidak |
+| Aksi                                       | Konfirmasi              | Alasan | Ketik teks        |
+| ------------------------------------------ | ----------------------- | ------ | ----------------- |
+| Hapus baris keranjang                      | Tidak, ada undo 5 detik | Tidak  | Tidak             |
+| Kosongkan keranjang                        | Ya                      | Tidak  | Tidak             |
+| Void item                                  | Ya                      | Ya     | Tidak             |
+| Batalkan pesanan                           | Ya                      | Ya     | Tidak             |
+| Retur pesanan selesai                      | Ya                      | Ya     | Ya, nomor pesanan |
+| Tolak pembayaran                           | Ya                      | Ya     | Tidak             |
+| Tutup kasir                                | Ya, dua langkah         | Tidak  | Tidak             |
+| Finalisasi opname                          | Ya                      | Tidak  | Ya, `FINALISASI`  |
+| Stok negatif                               | Ya                      | Ya     | Ya, nama bahan    |
+| Nonaktifkan staff, voucher, rekening, menu | Ya                      | Tidak  | Tidak             |
+| Ubah peran staff                           | Ya                      | Tidak  | Tidak             |
+| Keluar dengan keranjang berisi             | Ya                      | Tidak  | Tidak             |
 
 Alasan wajib memiliki minimal 3 karakter dan maksimal 200 karakter. Teks alasan tidak boleh kosong setelah trim.
 
@@ -624,18 +634,18 @@ Alasan wajib memiliki minimal 3 karakter dan maksimal 200 karakter. Teks alasan 
 
 ### 13.1 Aturan format (`shared/lib/format.ts`)
 
-| Jenis | Format | Contoh |
-|---|---|---|
-| Rupiah | `Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })` | Rp 12.500 |
-| Angka biasa | `id-ID` | 1.234 |
-| Persen | `id-ID`, maksimal 2 desimal | 10,5% |
-| Tanggal | `d MMM yyyy` | 8 Okt 2026 |
-| Tanggal dan jam | `d MMM yyyy, HH:mm` | 8 Okt 2026, 09:58 |
-| Jam | `HH:mm` | 09:58 |
-| Durasi sejak waktu | "5 menit", "1 jam 20 menit" | |
-| Nomor pesanan | apa adanya | JKG-20261008-0001 |
-| Nomor rekening (daftar) | 4 digit terakhir | •••• 1234 |
-| Nomor rekening (detail) | lengkap, dikelompokkan 4 digit | 1234 5678 9012 |
+| Jenis                   | Format                                                                                         | Contoh            |
+| ----------------------- | ---------------------------------------------------------------------------------------------- | ----------------- |
+| Rupiah                  | `Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })` | Rp 12.500         |
+| Angka biasa             | `id-ID`                                                                                        | 1.234             |
+| Persen                  | `id-ID`, maksimal 2 desimal                                                                    | 10,5%             |
+| Tanggal                 | `d MMM yyyy`                                                                                   | 8 Okt 2026        |
+| Tanggal dan jam         | `d MMM yyyy, HH:mm`                                                                            | 8 Okt 2026, 09:58 |
+| Jam                     | `HH:mm`                                                                                        | 09:58             |
+| Durasi sejak waktu      | "5 menit", "1 jam 20 menit"                                                                    |                   |
+| Nomor pesanan           | apa adanya                                                                                     | JKG-20261008-0001 |
+| Nomor rekening (daftar) | 4 digit terakhir                                                                               | •••• 1234         |
+| Nomor rekening (detail) | lengkap, dikelompokkan 4 digit                                                                 | 1234 5678 9012    |
 
 Semua tanggal dan jam ditampilkan dalam zona `Asia/Jakarta` menggunakan `Intl.DateTimeFormat` dengan `timeZone: 'Asia/Jakarta'`, bukan zona perangkat.
 
@@ -659,14 +669,14 @@ Semua tanggal dan jam ditampilkan dalam zona `Asia/Jakarta` menggunakan `Intl.Da
 
 ### 14.2 Grup menu sidebar
 
-| Grup | Item | Peran |
-|---|---|---|
-| Operasional | Kasir (POS), Pesanan, Riwayat, Shift | staff |
-| Katalog | Menu, Voucher | staff |
-| Stok | Inventaris, Stok opname | staff |
-| Pembayaran | Rekening, Verifikasi | staff |
-| Laporan | Laporan | staff |
-| Pengaturan | Toko dan branding, Staff, Printer, Audit | super_admin untuk toko, branding, staff, audit. Printer untuk staff. |
+| Grup        | Item                                     | Peran                                                                |
+| ----------- | ---------------------------------------- | -------------------------------------------------------------------- |
+| Operasional | Kasir (POS), Pesanan, Riwayat, Shift     | staff                                                                |
+| Katalog     | Menu, Voucher                            | staff                                                                |
+| Stok        | Inventaris, Stok opname                  | staff                                                                |
+| Pembayaran  | Rekening, Verifikasi                     | staff                                                                |
+| Laporan     | Laporan                                  | staff                                                                |
+| Pengaturan  | Toko dan branding, Staff, Printer, Audit | super_admin untuk toko, branding, staff, audit. Printer untuk staff. |
 
 Item yang tidak diizinkan peran tidak ditampilkan. Grup kosong tidak ditampilkan.
 
@@ -734,6 +744,7 @@ Layar paling kritis. Dirancang untuk tablet landscape 1024×768 ke atas.
 **Tata letak (<768 px atau potret):** grid penuh. Keranjang menjadi bottom sheet dengan ringkasan (jumlah item dan total) di atas bottom navigation. Ketuk membuka sheet penuh. Di potret tablet (768–1023 px), tampilkan banner kecil "Putar perangkat ke landscape untuk pengalaman terbaik" yang bisa ditutup.
 
 **Panel menu:**
+
 - Tab kategori: horizontal, bisa digeser, kategori aktif dengan garis brand dan `aria-selected`. Kategori kosong (tidak ada item aktif) disembunyikan.
 - Pencarian: memfilter semua kategori. Hasil menggantikan grid dengan judul "Hasil pencarian: N item". Tombol Esc menghapus pencarian.
 - Kartu menu: gambar rasio 4:3 (`loading="lazy"`, dimensi eksplisit), nama (maks 2 baris), harga, badge "Habis" jika `is_available = false`. Item habis tampil redup, `aria-disabled`, tidak bisa dipilih.
@@ -742,6 +753,7 @@ Layar paling kritis. Dirancang untuk tablet landscape 1024×768 ke atas.
 - Tahan kartu 500 ms atau tombol ikon kecil di kartu membuka panel modifier untuk mengatur jumlah dan catatan tanpa menambah langsung.
 
 **Panel keranjang:**
+
 - Jenis pesanan: segmented control (Dine-in, Takeaway). Default Dine-in.
 - Meja atau pelanggan: input teks opsional.
 - Baris item: nama, modifier (dipisah koma), catatan (dengan ikon jika ada), `QuantityField` (44 px), total baris `Money`, tombol hapus (ikon sampah). Di mobile, geser ke kiri membuka tombol Hapus. Hapus memicu toast undo 5 detik, bukan konfirmasi.
@@ -788,23 +800,24 @@ Layar paling kritis. Dirancang untuk tablet landscape 1024×768 ke atas.
    - Keranjang tidak pernah dihapus saat gagal.
 
 **Pembuatan struk dan cetak:**
+
 - Setelah sukses, jika printer terhubung dan `deviceStore.printer` ada, struk dikirim otomatis. Jika tidak, struk masuk antrian dengan toast "Struk disimpan di antrian cetak."
 - Pencetakan dijalankan setelah pesanan tersimpan. Kegagalan cetak tidak mengubah status pesanan.
 
 **Pintasan keyboard (aktif jika `deviceStore.shortcutsEnabled`):**
 
-| Tombol | Aksi | Syarat |
-|---|---|---|
-| `/` | Fokus pencarian menu | Tidak sedang di input |
-| `1`–`9` | Pilih item ke-n dari grid yang terlihat (tambah satu porsi atau buka modifier) | Tidak sedang di input |
-| `+` / `-` | Ubah jumlah baris keranjang yang terpilih | Baris terpilih dengan panah atas/bawah |
-| `↑` / `↓` | Pindah baris keranjang | Fokus di keranjang |
-| `Delete` | Hapus baris terpilih (dengan undo) | Fokus di keranjang |
-| `F2` | Buka pembayaran | Keranjang tidak kosong |
-| `F3` | Buka open bill | Keranjang tidak kosong |
-| `F4` | Fokus input voucher | Selalu |
-| `Esc` | Tutup drawer atau hapus pencarian | Selalu |
-| `?` | Buka daftar pintasan | Tidak sedang di input |
+| Tombol    | Aksi                                                                           | Syarat                                 |
+| --------- | ------------------------------------------------------------------------------ | -------------------------------------- |
+| `/`       | Fokus pencarian menu                                                           | Tidak sedang di input                  |
+| `1`–`9`   | Pilih item ke-n dari grid yang terlihat (tambah satu porsi atau buka modifier) | Tidak sedang di input                  |
+| `+` / `-` | Ubah jumlah baris keranjang yang terpilih                                      | Baris terpilih dengan panah atas/bawah |
+| `↑` / `↓` | Pindah baris keranjang                                                         | Fokus di keranjang                     |
+| `Delete`  | Hapus baris terpilih (dengan undo)                                             | Fokus di keranjang                     |
+| `F2`      | Buka pembayaran                                                                | Keranjang tidak kosong                 |
+| `F3`      | Buka open bill                                                                 | Keranjang tidak kosong                 |
+| `F4`      | Fokus input voucher                                                            | Selalu                                 |
+| `Esc`     | Tutup drawer atau hapus pencarian                                              | Selalu                                 |
+| `?`       | Buka daftar pintasan                                                           | Tidak sedang di input                  |
 
 Pintasan tidak aktif saat fokus di input teks, kecuali `F2`, `F3`, `F4`, dan `Esc`. Setiap pintasan terlihat di `KeyboardHint`.
 
@@ -870,17 +883,20 @@ Pintasan tidak aktif saat fokus di input teks, kecuali `F2`, `F3`, `F4`, dan `Es
 ### 15.7 Shift (`/shift`)
 
 **Tanpa shift terbuka:**
+
 - Kartu besar "Buka kasir".
 - Input saldo awal tunai (`MoneyField`, minimal 0).
 - Tombol Buka kasir.
 - Error `SHIFT_ALREADY_OPEN`: muat ulang dan tampilkan shift yang aktif.
 
 **Shift terbuka:**
+
 - Kartu status: waktu buka, saldo awal, jumlah pesanan, total per metode (tunai, transfer, e-wallet), kas yang diharapkan. Angka diperbarui saat fokus dan saat realtime `payments` berubah.
 - Tombol Tutup kasir.
 - Jika ada open bill, tombol nonaktif dengan teks "Tutup semua open bill terlebih dahulu" dan tautan ke daftar open bill.
 
 **Tutup kasir (dialog dua langkah):**
+
 - Langkah 1: ringkasan. Tombol Lanjut.
 - Langkah 2: input kas fisik (`MoneyField`, minimal 0). Selisih realtime:
   - `actual < expected`: "Kurang Rp X" dengan `--danger`.
@@ -919,10 +935,12 @@ Pintasan tidak aktif saat fokus di input teks, kecuali `F2`, `F3`, `F4`, dan `Es
 ### 15.10 Stok opname (`/inventory/opname`, `/inventory/opname/:opnameId`)
 
 **Daftar:**
+
 - Tombol "Mulai opname" (nonaktif jika ada draft, dengan teks "Opname draft sedang berjalan").
 - Tabel: tanggal dibuka, dibuka oleh, status, tanggal finalisasi. Baris draft dapat diklik untuk melanjutkan.
 
 **Detail:**
+
 - Header: status, tanggal, pembuat, ringkasan jumlah bahan, selisih, belum dihitung.
 - Tabel: nama bahan, satuan, stok sistem (baca saja, `tabular-nums`), stok hitung (`NumericInput`, desimal sampai 3 digit), selisih (otomatis, warna dan teks).
 - Filter: "Hanya selisih", "Belum dihitung", cari nama.
@@ -1091,14 +1109,15 @@ Cetak ulang diberi baris "REPRINT" di bagian atas.
 
 ## 18. Realtime di UI
 
-| Layar | Subscription | Filter | Efek |
-|---|---|---|---|
-| Pesanan | `orders` | `status` in (`new`, `processing`, `ready`) | Invalidate `['orders']`, `['order', id]` jika terbuka |
-| Verifikasi | `payments` | `status = pending_verification` | Invalidate `['payments', 'pending']` |
-| POS | - | - | Tidak ada realtime. Saat checkout, data selalu dari RPC |
-| Shift | `payments` | `method = cash` dan `shift_id = aktif` | Invalidate `['shift', 'active']` |
+| Layar      | Subscription | Filter                                     | Efek                                                    |
+| ---------- | ------------ | ------------------------------------------ | ------------------------------------------------------- |
+| Pesanan    | `orders`     | `status` in (`new`, `processing`, `ready`) | Invalidate `['orders']`, `['order', id]` jika terbuka   |
+| Verifikasi | `payments`   | `status = pending_verification`            | Invalidate `['payments', 'pending']`                    |
+| POS        | -            | -                                          | Tidak ada realtime. Saat checkout, data selalu dari RPC |
+| Shift      | `payments`   | `method = cash` dan `shift_id = aktif`     | Invalidate `['shift', 'active']`                        |
 
 Aturan:
+
 - Realtime hanya mempercepat tampilan. Keputusan tetap berdasarkan respons RPC.
 - Event dari sesi lain tidak mengubah keranjang atau form yang sedang diisi.
 - Jika event datang saat dialog terbuka, dialog tetap terbuka dan data latar diperbarui.
@@ -1149,14 +1168,15 @@ WCAG 2.1 AA. Diuji dengan axe-core di setiap route utama dan dengan pemeriksaan 
 
 ## 21. Responsivitas
 
-| Breakpoint | Lebar | Perilaku utama |
-|---|---|---|
-| Mobile | <768 px | Bottom navigation, tabel jadi kartu, keranjang bottom sheet, drawer full screen, papan pesanan jadi tab |
-| Tablet | 768–1023 px | Bottom navigation dengan label, POS dua kolom (keranjang 320 px), sidebar disembunyikan |
-| Desktop | 1024–1439 px | Sidebar, POS tiga area (menu, keranjang, bar pintasan) |
-| Layar besar | ≥1440 px | Grid menu 4 kolom, panel detail pesanan tetap terbuka |
+| Breakpoint  | Lebar        | Perilaku utama                                                                                          |
+| ----------- | ------------ | ------------------------------------------------------------------------------------------------------- |
+| Mobile      | <768 px      | Bottom navigation, tabel jadi kartu, keranjang bottom sheet, drawer full screen, papan pesanan jadi tab |
+| Tablet      | 768–1023 px  | Bottom navigation dengan label, POS dua kolom (keranjang 320 px), sidebar disembunyikan                 |
+| Desktop     | 1024–1439 px | Sidebar, POS tiga area (menu, keranjang, bar pintasan)                                                  |
+| Layar besar | ≥1440 px     | Grid menu 4 kolom, panel detail pesanan tetap terbuka                                                   |
 
 Aturan tambahan:
+
 - Mobile-first. Utility Tailwind `md:` dan `lg:` untuk perluasan.
 - POS dioptimalkan untuk tablet landscape. Potret menampilkan banner saran rotasi (bisa ditutup, muncul lagi setelah 24 jam).
 - Tabel dengan lebih dari 6 kolom tidak boleh dipaksa ke layar kecil. Gunakan mode kartu.
@@ -1169,14 +1189,14 @@ Aturan tambahan:
 
 ### 22.1 Anggaran
 
-| Metrik | Target |
-|---|---|
+| Metrik                                                  | Target             |
+| ------------------------------------------------------- | ------------------ |
 | LCP POS (build production, mobile emulasi, sudah login) | di bawah 2,5 detik |
-| INP tambah item dan tombol bayar | di bawah 200 ms |
-| CLS | di bawah 0,05 |
-| JavaScript awal (gzip) | di bawah 180 KB |
-| Chunk per route (gzip) | di bawah 80 KB |
-| Skor Lighthouse performa POS dan Pesanan | minimal 85 |
+| INP tambah item dan tombol bayar                        | di bawah 200 ms    |
+| CLS                                                     | di bawah 0,05      |
+| JavaScript awal (gzip)                                  | di bawah 180 KB    |
+| Chunk per route (gzip)                                  | di bawah 80 KB     |
+| Skor Lighthouse performa POS dan Pesanan                | minimal 85         |
 
 ### 22.2 Teknik wajib
 
@@ -1230,48 +1250,55 @@ Aturan tambahan:
 
 ### 25.1 Lapisan
 
-| Lapisan | Alat | Cakupan wajib | Ambang |
-|---|---|---|---|
-| Unit logika | Vitest | `format.ts`, `money.ts`, `datetime.ts`, `contrast.ts`, `errors.ts`, `csv.ts`, `receipt.ts`, `logic.ts` setiap fitur | Baris 90%, cabang 80% |
-| Store | Vitest | `cartStore`, `deviceStore`, `themeStore`, `connectionStore` | 100% cabang |
-| Hook | Vitest + Testing Library | `useRealtime`, `useIdleTimeout`, `useUnsavedChanges`, `useShortcut`, `useDebouncedValue` | Lulus |
-| Komponen primitif | Vitest + Testing Library | Semua `shared/ui` dan `shared/components`: varian, state, disabled, loading | Lulus |
-| Form | Vitest + Testing Library | Setiap form: validasi, submit, error server, dirty state | Lulus |
-| Layar | Vitest + Testing Library (dengan mock `api`) | Setiap layar: empat state, aksi utama | Lulus |
-| E2E | Playwright | Lihat 25.3 | Lulus di empat browser dan dua viewport mobile |
-| Aksesibilitas | @axe-core/playwright | Semua route utama, tema terang dan gelap | Nol serius atau kritis |
-| Performa | Lighthouse CI | `/login`, `/pos`, `/orders` (sesuai D14) | Skor minimal 85 |
+| Lapisan           | Alat                                         | Cakupan wajib                                                                                                       | Ambang                                         |
+| ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Unit logika       | Vitest                                       | `format.ts`, `money.ts`, `datetime.ts`, `contrast.ts`, `errors.ts`, `csv.ts`, `receipt.ts`, `logic.ts` setiap fitur | Baris 90%, cabang 80%                          |
+| Store             | Vitest                                       | `cartStore`, `deviceStore`, `themeStore`, `connectionStore`                                                         | 100% cabang                                    |
+| Hook              | Vitest + Testing Library                     | `useRealtime`, `useIdleTimeout`, `useUnsavedChanges`, `useShortcut`, `useDebouncedValue`                            | Lulus                                          |
+| Komponen primitif | Vitest + Testing Library                     | Semua `shared/ui` dan `shared/components`: varian, state, disabled, loading                                         | Lulus                                          |
+| Form              | Vitest + Testing Library                     | Setiap form: validasi, submit, error server, dirty state                                                            | Lulus                                          |
+| Layar             | Vitest + Testing Library (dengan mock `api`) | Setiap layar: empat state, aksi utama                                                                               | Lulus                                          |
+| E2E               | Playwright                                   | Lihat 25.3                                                                                                          | Lulus di empat browser dan dua viewport mobile |
+| Aksesibilitas     | @axe-core/playwright                         | Semua route utama, tema terang dan gelap                                                                            | Nol serius atau kritis                         |
+| Performa          | Lighthouse CI                                | `/login`, `/pos`, `/orders` (sesuai D14)                                                                            | Skor minimal 85                                |
 
 ### 25.2 Test komponen wajib
 
 **`Money`**
+
 - Format `12500` menjadi `Rp 12.500`.
 - `0` menjadi `Rp 0`.
 - Negatif dengan `signed` menjadi `−Rp 5.000` dengan tone danger.
 - Tidak menerima nilai pecahan (melempar error dev atau dibulatkan ke bawah, dan test memverifikasi perilakunya sesuai pilihan).
 
 **`QuantityField`**
+
 - Tidak bisa di bawah 1 atau di atas 100.
 - Tombol `−` nonaktif di 1, `+` nonaktif di 100.
 
 **`ConfirmAction`**
+
 - Tombol konfirmasi nonaktif saat alasan kosong atau kurang dari 3 karakter.
 - Teks ketik ulang harus persis sama (case-sensitive).
 - Fokus awal bukan pada tombol destruktif.
 
 **`StatusBadge`**
+
 - Setiap status menampilkan ikon dan teks yang sama dengan tabel 10.3.
 
 **`DataTable`**
+
 - Sort toggle mengubah `aria-sort`.
 - Mode kartu di bawah 768 px.
 - Baris kosong menampilkan `EmptyState`.
 
 **`NumericKeypad`** dan **`QuickCash`**
+
 - Tombol keypad memanggil `onKey` dengan digit yang benar.
 - `QuickCash` menampilkan uang pas dan pembulatan berikutnya.
 
 **`SearchInput`**
+
 - Debounce 250 ms: hanya satu panggilan `onChange` setelah jeda.
 
 ### 25.3 E2E wajib (Playwright)
