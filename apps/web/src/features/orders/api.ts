@@ -70,9 +70,9 @@ const detailOrderSchema = z.object({
   payments: z.array(detailPaymentSchema),
 });
 const auditEntrySchema = z.object({
-  id: z.coerce.number().int(),
-  actor_id: z.string().uuid().nullable(),
+  id: z.string().uuid(),
   action: z.string(),
+  actor_name: z.string(),
   payload: z.record(z.string(), z.unknown()).nullable(),
   created_at: z.string(),
 });
@@ -154,12 +154,9 @@ export async function readOrderDetail(
 
   let statusHistory: OrderDetail['status_history'] = [];
   if (includeStatusHistory) {
-    const { data: auditRows, error: auditError } = await supabase
-      .from('audit_logs')
-      .select('id, actor_id, action, payload, created_at')
-      .eq('entity', 'order')
-      .eq('entity_id', orderId)
-      .order('created_at', { ascending: true });
+    const { data: auditRows, error: auditError } = await supabase.rpc('get_order_history', {
+      p_order_id: orderId,
+    });
     if (auditError) {
       return { ok: false, error: toAppError(auditError) };
     }
@@ -167,20 +164,7 @@ export async function readOrderDetail(
     if (!parsedAudit.success) {
       return { ok: false, error: toAppError(new Error('Riwayat pesanan tidak valid.')) };
     }
-    const actorIds = [
-      ...new Set(parsedAudit.data.flatMap((entry) => (entry.actor_id ? [entry.actor_id] : []))),
-    ];
-    const { data: actors, error: actorsError } = actorIds.length
-      ? await supabase.from('profiles').select('id, full_name').in('id', actorIds)
-      : { data: [], error: null };
-    if (actorsError) {
-      return { ok: false, error: toAppError(actorsError) };
-    }
-    const actorNames = new Map((actors ?? []).map((actor) => [actor.id, actor.full_name]));
-    statusHistory = parsedAudit.data.map((entry) => ({
-      ...entry,
-      actor_name: entry.actor_id ? (actorNames.get(entry.actor_id) ?? '') : '',
-    }));
+    statusHistory = parsedAudit.data;
   }
 
   return {

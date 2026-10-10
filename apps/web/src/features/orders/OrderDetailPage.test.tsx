@@ -80,20 +80,31 @@ describe('OrderDetailPage', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('menampilkan detail pembayaran dan tidak meminta audit untuk admin', () => {
+  it('menampilkan riwayat RPC untuk admin', () => {
     vi.mocked(useOrderDetail).mockReturnValue({
       isPending: false,
       isError: false,
-      data: orderDetail,
+      data: {
+        ...orderDetail,
+        status_history: [
+          {
+            id: '00000000-0000-4000-8000-000000000014',
+            action: 'order.status_change',
+            payload: { from: 'new', to: 'processing' },
+            created_at: orderDetail.created_at,
+            actor_name: 'Kasir Satu',
+          },
+        ],
+      },
     } as never);
     renderPage();
 
     expect(screen.getByRole('heading', { name: orderDetail.order_no })).toBeVisible();
-    expect(screen.getByText('Kasir Satu')).toBeVisible();
+    expect(screen.getAllByText('Kasir Satu')).toHaveLength(2);
     expect(screen.getByText('Es Teh')).toBeVisible();
     expect(screen.getByText('Ukuran: Besar')).toBeVisible();
-    expect(useOrderDetail).toHaveBeenCalledWith(orderDetail.id, false);
-    expect(screen.queryByText('Riwayat pesanan')).not.toBeInTheDocument();
+    expect(useOrderDetail).toHaveBeenCalledWith(orderDetail.id, true);
+    expect(screen.getByText('Status berubah: Baru → Diproses')).toBeVisible();
   });
 
   it('memuat riwayat status hanya untuk super admin', () => {
@@ -105,8 +116,7 @@ describe('OrderDetailPage', () => {
         ...orderDetail,
         status_history: [
           {
-            id: 1,
-            actor_id: orderDetail.created_by,
+            id: '00000000-0000-4000-8000-000000000015',
             action: 'order.status_change',
             payload: { from: 'new', to: 'processing' },
             created_at: orderDetail.created_at,

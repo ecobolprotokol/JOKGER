@@ -45,7 +45,7 @@ function getAuditDescription(action: string, payload: Record<string, unknown> | 
 export function OrderDetailPage() {
   const { orderId = '' } = useParams();
   const profile = useProfile();
-  const canViewHistory = profile.data?.role === 'super_admin';
+  const canViewHistory = profile.data?.role === 'admin' || profile.data?.role === 'super_admin';
   const detailQuery = useOrderDetail(orderId, canViewHistory);
   const cancelMutation = useCancelOrder();
   const returnMutation = useReturnCompletedOrder();
