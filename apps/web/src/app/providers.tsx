@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { Toaster } from 'sonner';
 import { SessionProvider } from '../features/auth';
 import { ConnectionMonitor } from './ConnectionMonitor';
+import { BrandingProvider } from './BrandingProvider';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -24,8 +25,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ConnectionMonitor>
         <SessionProvider>
-          {children}
-          <Toaster position="top-right" closeButton visibleToasts={3} />
+          <BrandingProvider>
+            {children}
+            <Toaster position="top-right" closeButton visibleToasts={3} />
+          </BrandingProvider>
         </SessionProvider>
       </ConnectionMonitor>
     </QueryClientProvider>

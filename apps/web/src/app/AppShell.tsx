@@ -10,6 +10,9 @@ import {
   Package,
   ClipboardCheck,
   ChartNoAxesCombined,
+  Settings,
+  Paintbrush,
+  UsersRound,
   Receipt,
   Tags,
   WalletCards,
@@ -29,6 +32,9 @@ const navigation = [
   { to: '/inventory', label: strings.inventory.title, icon: Package },
   { to: '/inventory/opname', label: strings.opname.title, icon: ClipboardCheck },
   { to: '/reports', label: strings.reports.title, icon: ChartNoAxesCombined },
+  { to: '/settings', label: strings.settings.title, icon: Settings, superAdmin: true },
+  { to: '/settings/branding', label: strings.branding.title, icon: Paintbrush, superAdmin: true },
+  { to: '/settings/staff', label: strings.staff.title, icon: UsersRound, superAdmin: true },
   { to: '/vouchers', label: strings.vouchers.title, icon: Tags },
   { to: '/payment-verification', label: strings.paymentVerification.title, icon: WalletCards },
   { to: '/payment-accounts', label: strings.paymentAccounts.title, icon: CreditCard },
@@ -39,8 +45,10 @@ export function AppShell(): JSX.Element {
   const profile = useProfile();
   const location = useLocation();
   const isPos = location.pathname.startsWith('/pos');
+  const isSuperAdmin = profile.data?.role === 'super_admin';
+  const visibleNavigation = navigation.filter((item) => !('superAdmin' in item) || isSuperAdmin);
   const currentPage =
-    navigation.find(
+    visibleNavigation.find(
       (item) =>
         location.pathname === item.to ||
         (item.to !== '/shift' && location.pathname.startsWith(`${item.to}/`)),
@@ -71,7 +79,7 @@ export function AppShell(): JSX.Element {
 
         <p className="app-nav__label">{strings.app.operationTitle}</p>
         <nav className="app-nav" aria-label={strings.app.operationTitle}>
-          {navigation.map(({ to, label, icon: ItemIcon }) => (
+          {visibleNavigation.map(({ to, label, icon: ItemIcon }) => (
             <NavLink
               key={to}
               to={to}

@@ -21,7 +21,8 @@
   --radius-lg: 18px;
   --radius-md: 14px;
   --radius-sm: 10px;
-  font-family: Inter, system-ui, sans-serif;
+  --font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-family);
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -550,6 +551,170 @@ label {
   text-align: left;
 }
 
+.settings-page {
+  width: min(100% - 32px, 920px);
+  margin: 0 auto;
+  padding: 32px 0 56px;
+}
+
+.settings-section {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.settings-section h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.settings-section select,
+.inventory-dialog select {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.settings-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--brand);
+}
+
+.settings-toggle span {
+  display: grid;
+  gap: 5px;
+}
+
+.settings-toggle small,
+.settings-hint,
+.staff-self-label {
+  color: var(--text-muted);
+}
+
+.settings-hint {
+  margin: -6px 0 0;
+  font-size: 13px;
+}
+
+.staff-actions,
+.staff-password-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.staff-actions .button {
+  min-height: 40px;
+  padding-inline: 10px;
+  font-size: 13px;
+}
+
+.staff-self-label {
+  display: block;
+  font-size: 12px;
+}
+
+.staff-password-field input {
+  flex: 1;
+  min-width: 160px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.settings-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.branding-logo-preview {
+  width: min(100%, 220px);
+  max-height: 120px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-field input[type='color'] {
+  width: 52px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.color-field input:not([type='color']) {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: monospace;
+}
+
+.branding-contrast {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.branding-contrast[role='alert'] strong {
+  color: var(--danger);
+}
+.branding-contrast[role='status'] strong {
+  color: var(--success);
+}
+
+.branding-preview {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 360px);
+  min-height: 112px;
+  align-content: center;
+  padding: 18px;
+  border-radius: 8px;
+}
+
+.branding-font-preview {
+  padding: 14px 0;
+  font-size: 24px;
+}
+
 @media (max-width: 760px) {
   .opname-page {
     padding-top: 22px;
@@ -595,6 +760,12 @@ label {
   }
   .report-table-panel__heading {
     align-items: flex-start;
+  }
+  .settings-page {
+    padding-top: 22px;
+  }
+  .settings-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RequireAuth } from './guards/RequireAuth';
+import { RequireRole } from './guards/RequireRole';
 import { AppShell } from './AppShell';
 import { LoginPage } from '../features/auth/LoginPage';
 import { useActiveShift } from '../features/shift';
@@ -42,6 +43,15 @@ const OpnameDetailPage = lazy(() =>
 );
 const ReportsPage = lazy(() =>
   import('../features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })),
+);
+const SettingsPage = lazy(() =>
+  import('../features/settings/SettingsPage').then((module) => ({ default: module.SettingsPage })),
+);
+const StaffPage = lazy(() =>
+  import('../features/settings/StaffPage').then((module) => ({ default: module.StaffPage })),
+);
+const BrandingPage = lazy(() =>
+  import('../features/settings/BrandingPage').then((module) => ({ default: module.BrandingPage })),
 );
 const MenuPage = lazy(() =>
   import('../features/menu/MenuPage').then((module) => ({ default: module.MenuPage })),
@@ -132,6 +142,30 @@ export const router = createBrowserRouter([
       { path: 'inventory/opname', element: suspended(<OpnameListPage />) },
       { path: 'inventory/opname/:opnameId', element: suspended(<OpnameDetailPage />) },
       { path: 'reports', element: suspended(<ReportsPage />) },
+      {
+        path: 'settings',
+        element: suspended(
+          <RequireRole role="super_admin">
+            <SettingsPage />
+          </RequireRole>,
+        ),
+      },
+      {
+        path: 'settings/branding',
+        element: suspended(
+          <RequireRole role="super_admin">
+            <BrandingPage />
+          </RequireRole>,
+        ),
+      },
+      {
+        path: 'settings/staff',
+        element: suspended(
+          <RequireRole role="super_admin">
+            <StaffPage />
+          </RequireRole>,
+        ),
+      },
       { path: 'menu', element: suspended(<MenuPage />) },
       { path: 'vouchers', element: suspended(<VouchersPage />) },
       { path: 'payment-verification', element: suspended(<PaymentVerificationPage />) },
