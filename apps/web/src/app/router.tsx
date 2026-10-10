@@ -40,6 +40,9 @@ const OpnameDetailPage = lazy(() =>
     default: module.OpnameDetailPage,
   })),
 );
+const ReportsPage = lazy(() =>
+  import('../features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })),
+);
 const MenuPage = lazy(() =>
   import('../features/menu/MenuPage').then((module) => ({ default: module.MenuPage })),
 );
@@ -128,6 +131,7 @@ export const router = createBrowserRouter([
       { path: 'inventory', element: suspended(<InventoryPage />) },
       { path: 'inventory/opname', element: suspended(<OpnameListPage />) },
       { path: 'inventory/opname/:opnameId', element: suspended(<OpnameDetailPage />) },
+      { path: 'reports', element: suspended(<ReportsPage />) },
       { path: 'menu', element: suspended(<MenuPage />) },
       { path: 'vouchers', element: suspended(<VouchersPage />) },
       { path: 'payment-verification', element: suspended(<PaymentVerificationPage />) },

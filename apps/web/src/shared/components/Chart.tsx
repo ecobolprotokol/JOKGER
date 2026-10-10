@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { strings } from '../strings/id';
 
 type ChartKind = 'bar' | 'line';
 
@@ -41,10 +42,10 @@ export function Chart({
     const maxValue = Math.max(...allValues, 0);
     const minValue = Math.min(...allValues, 0);
 
-    const xStep = chartWidth / Math.max(labels.length - 1, 1);
+    const xStep = chartWidth / Math.max(kind === 'bar' ? labels.length : labels.length - 1, 1);
     const yScale = chartHeight / (maxValue - minValue || 1);
 
-    const colors = series.map((_, i) => `hsl(${i * 60}, 70%, 50%)`);
+    const colors = series.map((_, i) => `hsl(${(i * 67 + 142) % 360}, 48%, 38%)`);
 
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
@@ -97,25 +98,24 @@ export function Chart({
       let d = '';
 
       s.data.forEach((value, i) => {
-        const x = i * xStep;
+        const x = kind === 'bar' ? i * xStep + xStep / 2 : i * xStep;
         const y = chartHeight - (value - minValue) * yScale;
-        if (i === 0) {
+        if (kind === 'line' && i === 0) {
           d += `M ${x} ${y}`;
+        } else if (kind === 'line') {
+          d += ` L ${x} ${y}`;
         } else {
-          if (kind === 'line') {
-            d += ` L ${x} ${y}`;
-          } else {
-            const barWidth = Math.max((xStep * 0.6) / series.length, 4);
-            const barX = x - (barWidth * series.length) / 2 + si * barWidth + barWidth / 2;
-            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('x', String(barX));
-            rect.setAttribute('y', String(y));
-            rect.setAttribute('width', String(barWidth));
-            rect.setAttribute('height', String(chartHeight - y));
-            rect.setAttribute('fill', color);
-            rect.setAttribute('rx', '2');
-            g.appendChild(rect);
-          }
+          const barWidth = Math.max((xStep * 0.6) / series.length, 4);
+          const barX = x - (barWidth * series.length) / 2 + si * barWidth;
+          const baseline = chartHeight - (0 - minValue) * yScale;
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', String(barX));
+          rect.setAttribute('y', String(Math.min(y, baseline)));
+          rect.setAttribute('width', String(barWidth));
+          rect.setAttribute('height', String(Math.max(Math.abs(baseline - y), 1)));
+          rect.setAttribute('fill', color);
+          rect.setAttribute('rx', '2');
+          g.appendChild(rect);
         }
       });
 
@@ -156,13 +156,16 @@ export function Chart({
 
   return (
     <div className="chart-container" ref={containerRef}>
-      <svg ref={svgRef} className="chart-svg" role="img" aria-label="Grafik data" />
+      <svg ref={svgRef} className="chart-svg" role="img" aria-label={strings.reports.chart} />
       <table className="chart-table visually-hidden">
+        <caption>{strings.reports.chart}</caption>
         <thead>
           <tr>
-            <th>Periode</th>
+            <th scope="col">{strings.reports.period}</th>
             {series.map((s) => (
-              <th key={s.label}>{s.label}</th>
+              <th scope="col" key={s.label}>
+                {s.label}
+              </th>
             ))}
           </tr>
         </thead>
