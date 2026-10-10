@@ -4,6 +4,7 @@ import { ErrorState } from '../../shared/components/ErrorState';
 import { Money } from '../../shared/components/Money';
 import { Stat } from '../../shared/components/Stat';
 import { Chart } from '../../shared/components/Chart';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { downloadCsv, generateCsvFilename, toCsv } from '../../shared/lib/csv';
 import { formatDate, formatNumber } from '../../shared/lib/format';
 import { toAppError } from '../../shared/lib/errors';
@@ -137,12 +138,7 @@ export function ReportsPage(): JSX.Element {
 
   return (
     <main className="reports-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.reports.title}</h1>
-        </div>
-      </header>
+      <PageHeader title={strings.reports.title} />
       <section className="report-filter" aria-label={strings.reports.filters}>
         <div className="report-presets" role="group" aria-label={strings.reports.datePresets}>
           <button className="button button--secondary" onClick={() => setPreset('today')}>

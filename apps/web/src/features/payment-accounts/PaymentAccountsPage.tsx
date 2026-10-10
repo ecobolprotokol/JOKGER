@@ -7,6 +7,7 @@ import {
   type PaymentAccount,
 } from './index';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { strings } from '../../shared/strings/id';
 
 type AccountFormState = {
@@ -90,20 +91,19 @@ export function PaymentAccountsPage() {
 
   return (
     <main className="payment-accounts-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.paymentAccounts.title}</h1>
-        </div>
-        <div className="payment-accounts-header-actions">
-          <Link className="button button--secondary" to="/pos">
-            {strings.pos.title}
-          </Link>
-          <button className="button button--primary" onClick={() => openForm(null)}>
-            {strings.paymentAccounts.add}
-          </button>
-        </div>
-      </header>
+      <PageHeader
+        title={strings.paymentAccounts.title}
+        actions={
+          <div className="payment-accounts-header-actions">
+            <Link className="button button--secondary" to="/pos">
+              {strings.pos.title}
+            </Link>
+            <button className="button button--primary" onClick={() => openForm(null)}>
+              {strings.paymentAccounts.add}
+            </button>
+          </div>
+        }
+      />
 
       {accounts.data.length === 0 ? (
         <section className="orders-empty" aria-live="polite">

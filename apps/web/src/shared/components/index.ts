@@ -9,7 +9,6 @@ export { ErrorState } from './ErrorState';
 export { SearchInput } from './SearchInput';
 export { Pagination } from './Pagination';
 export { PageHeader } from './PageHeader';
-export { SectionCard } from './SectionCard';
 export { Stat } from './Stat';
 export { Chart } from './Chart';
 export { OfflineBanner } from './OfflineBanner';

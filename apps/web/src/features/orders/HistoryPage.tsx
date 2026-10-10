@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Money } from '../../shared/components/Money';
 import { OrderStatusBadge } from '../../shared/components/OrderStatusBadge';
 import { Pagination } from '../../shared/components/Pagination';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { downloadCsv, generateCsvFilename, toCsv } from '../../shared/lib/csv';
 import { formatDateTime } from '../../shared/lib/format';
 import { strings } from '../../shared/strings/id';
@@ -160,25 +161,24 @@ export function HistoryPage() {
 
   return (
     <main className="orders-page history-page">
-      <header className="orders-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.history.title}</h1>
-        </div>
-        <div className="orders-heading__actions">
-          <span className="history-result-count">
-            {strings.history.resultCount}: {total}
-          </span>
-          <button
-            className="button button--secondary"
-            disabled={exportHistory.isPending || total === 0}
-            onClick={exportCsv}
-          >
-            <Download size={17} aria-hidden="true" />
-            {exportHistory.isPending ? strings.history.exporting : strings.history.export}
-          </button>
-        </div>
-      </header>
+      <PageHeader
+        title={strings.history.title}
+        actions={
+          <>
+            <span className="history-result-count">
+              {strings.history.resultCount}: {total}
+            </span>
+            <button
+              className="button button--secondary"
+              disabled={exportHistory.isPending || total === 0}
+              onClick={exportCsv}
+            >
+              <Download size={17} aria-hidden="true" />
+              {exportHistory.isPending ? strings.history.exporting : strings.history.export}
+            </button>
+          </>
+        }
+      />
 
       <section className="history-filters" aria-label={strings.history.filters}>
         <div className="history-presets" aria-label={strings.history.datePresets}>

@@ -5,6 +5,7 @@ import { usePaymentProof, usePendingPayments, useVerifyPayment } from './index';
 import type { PendingPayment } from './index';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { Money } from '../../shared/components/Money';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { useRealtime } from '../../shared/hooks/useRealtime';
 import { strings } from '../../shared/strings/id';
 
@@ -83,12 +84,7 @@ export function PaymentVerificationPage() {
 
   return (
     <main className="verification-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.paymentVerification.title}</h1>
-        </div>
-      </header>
+      <PageHeader title={strings.paymentVerification.title} />
       {allPayments.length === 0 ? (
         <section className="orders-empty" aria-live="polite">
           <h2>{strings.paymentVerification.empty}</h2>

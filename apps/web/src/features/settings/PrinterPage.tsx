@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ErrorState } from '../../shared/components/ErrorState';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { ReceiptPrintView } from '../../shared/components/ReceiptPrintView';
 import { useStoreSettings } from './hooks';
 import { toAppError } from '../../shared/lib/errors';
@@ -132,12 +133,7 @@ export function PrinterPage(): JSX.Element {
 
   return (
     <main className="settings-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.printer.title}</h1>
-        </div>
-      </header>
+      <PageHeader title={strings.printer.title} />
       <section className="settings-section">
         <h2>{strings.printer.status}</h2>
         <p role="status">

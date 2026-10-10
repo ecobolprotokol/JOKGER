@@ -5,6 +5,7 @@ import { useProfile } from '../auth';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { Money } from '../../shared/components/Money';
 import { OrderStatusBadge } from '../../shared/components/OrderStatusBadge';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { StatusBadge } from '../../shared/components/StatusBadge';
 import { useCancelOrder, useOrderDetail, useReturnCompletedOrder, type OrderStatus } from './index';
 import { formatDateTime } from '../../shared/lib/format';
@@ -95,28 +96,27 @@ export function OrderDetailPage() {
 
   return (
     <main className="shift-page order-detail-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{order.order_no}</h1>
-        </div>
-        <div className="order-detail__header-actions">
-          <OrderStatusBadge status={order.status} />
-          <Link className="button button--secondary" to="/orders">
-            {strings.orderDetail.backToOrders}
-          </Link>
-          {canCancel && (
-            <button className="button button--danger" onClick={() => setConfirmAction('cancel')}>
-              {strings.orders.cancel}
-            </button>
-          )}
-          {canReturn && (
-            <button className="button button--danger" onClick={() => setConfirmAction('return')}>
-              {strings.orders.return}
-            </button>
-          )}
-        </div>
-      </header>
+      <PageHeader
+        title={order.order_no}
+        actions={
+          <div className="order-detail__header-actions">
+            <OrderStatusBadge status={order.status} />
+            <Link className="button button--secondary" to="/orders">
+              {strings.orderDetail.backToOrders}
+            </Link>
+            {canCancel && (
+              <button className="button button--danger" onClick={() => setConfirmAction('cancel')}>
+                {strings.orders.cancel}
+              </button>
+            )}
+            {canReturn && (
+              <button className="button button--danger" onClick={() => setConfirmAction('return')}>
+                {strings.orders.return}
+              </button>
+            )}
+          </div>
+        }
+      />
 
       <section className="shift-panel order-detail__summary" aria-labelledby="order-summary-title">
         <h2 id="order-summary-title">{strings.orderDetail.summary}</h2>

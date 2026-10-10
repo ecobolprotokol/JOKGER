@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { Money } from '../../shared/components/Money';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { formatDate, formatPercent } from '../../shared/lib/format';
 import { calculateVoucherDiscount } from '../../shared/lib/money';
 import { strings } from '../../shared/strings/id';
@@ -211,15 +212,14 @@ export function VouchersPage() {
 
   return (
     <main className="inventory-page voucher-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.vouchers.title}</h1>
-        </div>
-        <button className="button button--primary" onClick={beginCreate}>
-          {strings.vouchers.add}
-        </button>
-      </header>
+      <PageHeader
+        title={strings.vouchers.title}
+        actions={
+          <button className="button button--primary" onClick={beginCreate}>
+            {strings.vouchers.add}
+          </button>
+        }
+      />
 
       {formOpen && (
         <section className="menu-edit-panel" aria-labelledby="voucher-form-title">

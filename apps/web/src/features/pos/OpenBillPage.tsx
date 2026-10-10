@@ -9,6 +9,7 @@ import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { FileProofField } from '../../shared/components/FileProofField';
 import { Money } from '../../shared/components/Money';
 import { MoneyField } from '../../shared/components/MoneyField';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { ModifierPicker } from './components/ModifierPicker';
 import { useAddItemsToOpenBill, useCloseOpenBill, useVoidOpenBillItem } from './hooks';
 import { useMenuCatalog, type MenuItem } from '../menu';
@@ -290,25 +291,21 @@ export function OpenBillPage() {
 
   return (
     <main className="open-bill-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.openBill.title}</p>
-          <h1>{order.order_no}</h1>
-          <p className="open-bill__meta">
-            {order.table_label || order.customer_name || strings.orderDetail.notProvided}
-            {' · '}
-            {strings.openBill.openedAt} {formatDateTime(order.created_at)}
-          </p>
-        </div>
-        <div className="open-bill__header-actions">
-          <Link className="button button--secondary" to={`/orders/${order.id}`}>
-            {strings.openBill.viewOrder}
-          </Link>
-          <Link className="button button--secondary" to="/pos">
-            {strings.pos.title}
-          </Link>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow={strings.openBill.title}
+        title={order.order_no}
+        description={`${order.table_label || order.customer_name || strings.orderDetail.notProvided} · ${strings.openBill.openedAt} ${formatDateTime(order.created_at)}`}
+        actions={
+          <div className="open-bill__header-actions">
+            <Link className="button button--secondary" to={`/orders/${order.id}`}>
+              {strings.openBill.viewOrder}
+            </Link>
+            <Link className="button button--secondary" to="/pos">
+              {strings.pos.title}
+            </Link>
+          </div>
+        }
+      />
 
       {isClosed ? (
         <section className="open-bill__notice" role="status">

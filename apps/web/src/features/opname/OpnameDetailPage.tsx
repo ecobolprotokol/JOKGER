@@ -4,6 +4,7 @@ import { Check, CircleAlert, Search } from 'lucide-react';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { ErrorState } from '../../shared/components/ErrorState';
 import { Money } from '../../shared/components/Money';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { formatDateTime } from '../../shared/lib/format';
 import { strings } from '../../shared/strings/id';
 import { toAppError } from '../../shared/lib/errors';
@@ -128,38 +129,38 @@ export function OpnameDetailPage(): JSX.Element {
 
   return (
     <main className="opname-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.opname.title}</p>
-          <h1>{formatDateTime(query.data.opened_at)}</h1>
-          <p>{query.data.profiles?.full_name ?? strings.orderDetail.unknownStaff}</p>
-        </div>
-        <div className="opname-detail__actions">
-          <span className="opname-save-status" role="status" aria-live="polite">
-            {save.isPending
-              ? strings.opname.saving
-              : saveFailed
-                ? strings.opname.saveFailed
-                : dirty
-                  ? strings.opname.unsaved
-                  : strings.opname.saved}
-          </span>
-          {saveFailed && (
-            <button className="button button--secondary" onClick={() => void persistCounts()}>
-              {strings.common.retry}
-            </button>
-          )}
-          {!isFinalized && (
-            <button
-              className="button button--primary"
-              disabled={dirty || save.isPending}
-              onClick={() => setConfirmFinalize(true)}
-            >
-              {strings.opname.finalize}
-            </button>
-          )}
-        </div>
-      </header>
+      <PageHeader
+        eyebrow={strings.opname.title}
+        title={formatDateTime(query.data.opened_at)}
+        description={query.data.profiles?.full_name ?? strings.orderDetail.unknownStaff}
+        actions={
+          <div className="opname-detail__actions">
+            <span className="opname-save-status" role="status" aria-live="polite">
+              {save.isPending
+                ? strings.opname.saving
+                : saveFailed
+                  ? strings.opname.saveFailed
+                  : dirty
+                    ? strings.opname.unsaved
+                    : strings.opname.saved}
+            </span>
+            {saveFailed && (
+              <button className="button button--secondary" onClick={() => void persistCounts()}>
+                {strings.common.retry}
+              </button>
+            )}
+            {!isFinalized && (
+              <button
+                className="button button--primary"
+                disabled={dirty || save.isPending}
+                onClick={() => setConfirmFinalize(true)}
+              >
+                {strings.opname.finalize}
+              </button>
+            )}
+          </div>
+        }
+      />
       {isFinalized && (
         <p className="form-success" role="status">
           {strings.opname.finalizedBanner}{' '}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { toast } from 'sonner';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { ErrorState } from '../../shared/components/ErrorState';
 import { toAppError } from '../../shared/lib/errors';
 import { strings } from '../../shared/strings/id';
@@ -54,12 +55,7 @@ export function SettingsPage(): JSX.Element {
 
   return (
     <main className="settings-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.settings.title}</h1>
-        </div>
-      </header>
+      <PageHeader title={strings.settings.title} />
 
       <form
         className="settings-section"

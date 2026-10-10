@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { changePassword } from './api';
 import { changePasswordSchema, type ChangePasswordInput } from './schemas';
 import { strings } from '../../shared/strings/id';
@@ -29,15 +30,14 @@ export function ChangePasswordPage() {
 
   return (
     <main className="shift-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.auth.passwordChangeTitle}</h1>
-        </div>
-        <Link className="button button--secondary" to="/">
-          {strings.auth.backToOperations}
-        </Link>
-      </header>
+      <PageHeader
+        title={strings.auth.passwordChangeTitle}
+        actions={
+          <Link className="button button--secondary" to="/">
+            {strings.auth.backToOperations}
+          </Link>
+        }
+      />
       <section className="shift-panel" aria-labelledby="change-password-title">
         <h2 id="change-password-title">{strings.auth.passwordChangeTitle}</h2>
         <p>{strings.auth.passwordChangeDescription}</p>

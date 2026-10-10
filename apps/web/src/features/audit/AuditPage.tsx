@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Copy, X } from 'lucide-react';
 import { ErrorState } from '../../shared/components/ErrorState';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { Money } from '../../shared/components/Money';
 import { formatDateTime } from '../../shared/lib/format';
 import { toAppError } from '../../shared/lib/errors';
@@ -76,12 +77,7 @@ export function AuditPage(): JSX.Element {
 
   return (
     <main className="settings-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.audit.title}</h1>
-        </div>
-      </header>
+      <PageHeader title={strings.audit.title} />
       <section className="report-filter" aria-label={strings.audit.filters}>
         <label className="field">
           <span>{strings.audit.action}</span>

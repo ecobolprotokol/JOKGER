@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { CalendarClock, ClipboardCheck } from 'lucide-react';
 import { useOpnames, useOpenOpname } from './hooks';
 import { ErrorState } from '../../shared/components/ErrorState';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { EmptyState } from '../../shared/components/EmptyState';
 import { formatDateTime } from '../../shared/lib/format';
 import { strings } from '../../shared/strings/id';
@@ -33,24 +34,23 @@ export function OpnameListPage(): JSX.Element {
 
   return (
     <main className="opname-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.opname.title}</h1>
-        </div>
-        <button
-          className="button button--primary"
-          disabled={Boolean(draft) || open.isPending}
-          onClick={() =>
-            open.mutate(undefined, {
-              onSuccess: (result) => navigate(`/inventory/opname/${result.id}`),
-            })
-          }
-        >
-          <ClipboardCheck size={17} aria-hidden="true" />
-          {draft ? strings.opname.draftRunning : strings.opname.start}
-        </button>
-      </header>
+      <PageHeader
+        title={strings.opname.title}
+        actions={
+          <button
+            className="button button--primary"
+            disabled={Boolean(draft) || open.isPending}
+            onClick={() =>
+              open.mutate(undefined, {
+                onSuccess: (result) => navigate(`/inventory/opname/${result.id}`),
+              })
+            }
+          >
+            <ClipboardCheck size={17} aria-hidden="true" />
+            {draft ? strings.opname.draftRunning : strings.opname.start}
+          </button>
+        }
+      />
       {open.isError && (
         <p className="form-alert" role="alert">
           {open.error.message}

@@ -4,6 +4,16 @@ export const strings = {
     operationTitle: 'Operasional',
     loading: 'Memuat aplikasi',
     loadError: 'Aplikasi tidak dapat dimuat.',
+    navigation: {
+      operations: 'Operasional',
+      catalog: 'Katalog & stok',
+      finance: 'Keuangan',
+      management: 'Pengaturan',
+    },
+    roles: {
+      superAdmin: 'Superadmin',
+      admin: 'Administrator',
+    },
   },
   common: {
     skipToContent: 'Lewati ke konten utama',
@@ -83,6 +93,7 @@ export const strings = {
   pos: {
     title: 'Kasir',
     categories: 'Kategori menu',
+    more: 'Lainnya',
     allCategories: 'Semua menu',
     search: 'Cari menu',
     cart: 'Keranjang',

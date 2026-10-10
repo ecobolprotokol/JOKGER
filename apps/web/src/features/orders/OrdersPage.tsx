@@ -10,6 +10,7 @@ import {
 } from './index';
 import { useProfile } from '../auth';
 import { OrderStatusBadge } from '../../shared/components/OrderStatusBadge';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { Money } from '../../shared/components/Money';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { useRealtime } from '../../shared/hooks/useRealtime';
@@ -80,30 +81,29 @@ export function OrdersPage() {
 
   return (
     <main className="orders-page">
-      <header className="orders-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.orders.title}</h1>
-        </div>
-        <div className="orders-heading__actions">
-          <span className="realtime-badge" role="status">
-            <span
-              className={`connection-dot ${realtime === 'connected' ? 'is-online' : 'is-offline'}`}
-              aria-hidden="true"
-            />
-            {realtime === 'connected' ? strings.orders.realtime : strings.orders.autoRefresh}
-          </span>
-          <button className="button button--secondary" onClick={() => void orders.refetch()}>
-            {strings.common.retry}
-          </button>
-          <Link className="button button--secondary" to="/inventory">
-            {strings.inventory.title}
-          </Link>
-          <Link className="button button--secondary" to="/payment-verification">
-            {strings.paymentVerification.title}
-          </Link>
-        </div>
-      </header>
+      <PageHeader
+        title={strings.orders.title}
+        actions={
+          <>
+            <span className="realtime-badge" role="status">
+              <span
+                className={`connection-dot ${realtime === 'connected' ? 'is-online' : 'is-offline'}`}
+                aria-hidden="true"
+              />
+              {realtime === 'connected' ? strings.orders.realtime : strings.orders.autoRefresh}
+            </span>
+            <button className="button button--secondary" onClick={() => void orders.refetch()}>
+              {strings.common.retry}
+            </button>
+            <Link className="button button--secondary" to="/inventory">
+              {strings.inventory.title}
+            </Link>
+            <Link className="button button--secondary" to="/payment-verification">
+              {strings.paymentVerification.title}
+            </Link>
+          </>
+        }
+      />
 
       <nav className="orders-tabs" aria-label={strings.orders.title}>
         {statusTabs.map((status) => (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { validateContrast } from '../../shared/lib/contrast';
 import { ErrorState } from '../../shared/components/ErrorState';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { supabase } from '../../shared/lib/supabase';
 import { toAppError } from '../../shared/lib/errors';
 import { strings } from '../../shared/strings/id';
@@ -137,24 +138,23 @@ export function BrandingPage(): JSX.Element {
 
   return (
     <main className="settings-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.branding.title}</h1>
-        </div>
-        <div className="settings-page__actions">
-          <button className="button button--secondary" onClick={() => setForm(query.data)}>
-            {strings.branding.cancelPreview}
-          </button>
-          <button
-            className="button button--primary"
-            disabled={!contrastPass || save.isPending || uploading}
-            onClick={() => void saveBranding()}
-          >
-            {strings.common.save}
-          </button>
-        </div>
-      </header>
+      <PageHeader
+        title={strings.branding.title}
+        actions={
+          <div className="settings-page__actions">
+            <button className="button button--secondary" onClick={() => setForm(query.data)}>
+              {strings.branding.cancelPreview}
+            </button>
+            <button
+              className="button button--primary"
+              disabled={!contrastPass || save.isPending || uploading}
+              onClick={() => void saveBranding()}
+            >
+              {strings.common.save}
+            </button>
+          </div>
+        }
+      />
       <section className="settings-section">
         <h2>{strings.branding.logo}</h2>
         {form.logo_url && (

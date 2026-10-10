@@ -12,6 +12,7 @@ import {
   type MenuItem,
 } from './index';
 import { RecipeEditor } from './RecipeEditor';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { Money } from '../../shared/components/Money';
 import { strings } from '../../shared/strings/id';
 
@@ -170,27 +171,26 @@ export function MenuPage() {
 
   return (
     <main className="inventory-page menu-management-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.menuManagement.title}</h1>
-        </div>
-        <div className="inventory-actions">
-          <button
-            className="button button--secondary"
-            onClick={() => setCategoryFormOpen((open) => !open)}
-          >
-            {strings.menuManagement.addCategory}
-          </button>
-          <button
-            className="button button--primary"
-            disabled={categories.length === 0}
-            onClick={startNewItem}
-          >
-            {strings.menuManagement.addItem}
-          </button>
-        </div>
-      </header>
+      <PageHeader
+        title={strings.menuManagement.title}
+        actions={
+          <div className="inventory-actions">
+            <button
+              className="button button--secondary"
+              onClick={() => setCategoryFormOpen((open) => !open)}
+            >
+              {strings.menuManagement.addCategory}
+            </button>
+            <button
+              className="button button--primary"
+              disabled={categories.length === 0}
+              onClick={startNewItem}
+            >
+              {strings.menuManagement.addItem}
+            </button>
+          </div>
+        }
+      />
 
       {categoryFormOpen && (
         <section className="menu-edit-panel" aria-labelledby="menu-category-form-title">

@@ -22,6 +22,7 @@ import { submitPayment, uploadPaymentProof } from './api';
 import { usePosShortcuts } from './usePosShortcuts';
 import { useDeviceStore } from '../../shared/stores/device';
 import { KeyboardHint } from '../../shared/components/KeyboardHint';
+import { MoreHorizontal } from 'lucide-react';
 
 function getErrorCode(error: unknown): string | null {
   if (
@@ -380,18 +381,35 @@ export function PosPage() {
           <Link className="button button--secondary" to="/orders">
             {strings.orders.title}
           </Link>
-          <Link className="button button--secondary" to="/inventory">
-            {strings.inventory.title}
-          </Link>
-          <Link className="button button--secondary" to="/payment-verification">
-            {strings.paymentVerification.title}
-          </Link>
-          <Link className="button button--secondary" to="/payment-accounts">
-            {strings.paymentAccounts.title}
-          </Link>
-          <Link className="button button--secondary" to="/account/password">
-            {strings.auth.passwordChangeTitle}
-          </Link>
+          <details className="pos-more">
+            <summary className="button button--secondary">
+              <MoreHorizontal size={17} aria-hidden="true" />
+              {strings.pos.more}
+            </summary>
+            <nav className="pos-more__menu" aria-label={strings.pos.more}>
+              <Link className="pos-more__link" to="/pos/open-bill">
+                {strings.openBill.title}
+              </Link>
+              <Link className="pos-more__link" to="/history">
+                {strings.history.title}
+              </Link>
+              <Link className="pos-more__link" to="/menu">
+                {strings.menuManagement.title}
+              </Link>
+              <Link className="pos-more__link" to="/inventory">
+                {strings.inventory.title}
+              </Link>
+              <Link className="pos-more__link" to="/payment-verification">
+                {strings.paymentVerification.title}
+              </Link>
+              <Link className="pos-more__link" to="/payment-accounts">
+                {strings.paymentAccounts.title}
+              </Link>
+              <Link className="pos-more__link" to="/account/password">
+                {strings.auth.passwordChangeTitle}
+              </Link>
+            </nav>
+          </details>
         </div>
       </header>
 

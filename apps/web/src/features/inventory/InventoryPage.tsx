@@ -12,6 +12,7 @@ import {
 import { useProfile } from '../auth';
 import { Money } from '../../shared/components/Money';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { calculateStockValue } from '../../shared/lib/money';
 import { strings } from '../../shared/strings/id';
 
@@ -125,21 +126,22 @@ export function InventoryPage() {
 
   return (
     <main className="inventory-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.inventory.title}</h1>
-        </div>
-        <Link className="button button--secondary" to="/payment-verification">
-          {strings.paymentVerification.title}
-        </Link>
-        <Link className="button button--secondary" to="/payment-accounts">
-          {strings.paymentAccounts.title}
-        </Link>
-        <button className="button button--primary" onClick={() => openItemForm(null)}>
-          {strings.inventory.addItem}
-        </button>
-      </header>
+      <PageHeader
+        title={strings.inventory.title}
+        actions={
+          <>
+            <Link className="button button--secondary" to="/payment-verification">
+              {strings.paymentVerification.title}
+            </Link>
+            <Link className="button button--secondary" to="/payment-accounts">
+              {strings.paymentAccounts.title}
+            </Link>
+            <button className="button button--primary" onClick={() => openItemForm(null)}>
+              {strings.inventory.addItem}
+            </button>
+          </>
+        }
+      />
       {items.length === 0 ? (
         <section className="orders-empty" aria-live="polite">
           <h2>{strings.inventory.noItems}</h2>

@@ -3,6 +3,7 @@ import { useActiveShift, useCloseShift, useOpenShift } from './hooks';
 import { Money } from '../../shared/components/Money';
 import { MoneyField } from '../../shared/components/MoneyField';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { strings } from '../../shared/strings/id';
 import { Link } from 'react-router-dom';
 
@@ -45,31 +46,32 @@ export function ShiftPage() {
 
   return (
     <main className="shift-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.shift.title}</h1>
-        </div>
-        <span
-          className={`status-pill ${activeShift ? 'status-pill--open' : 'status-pill--closed'}`}
-        >
-          {activeShift ? strings.shift.activeTitle : strings.shift.noOpenShift}
-        </span>
-        {activeShift && (
-          <Link className="button button--primary" to="/pos">
-            {strings.pos.title}
-          </Link>
-        )}
-        <Link className="button button--secondary" to="/orders">
-          {strings.orders.title}
-        </Link>
-        <Link className="button button--secondary" to="/inventory">
-          {strings.inventory.title}
-        </Link>
-        <Link className="button button--secondary" to="/account/password">
-          {strings.auth.passwordChangeTitle}
-        </Link>
-      </header>
+      <PageHeader
+        title={strings.shift.title}
+        actions={
+          <>
+            <span
+              className={`status-pill ${activeShift ? 'status-pill--open' : 'status-pill--closed'}`}
+            >
+              {activeShift ? strings.shift.activeTitle : strings.shift.noOpenShift}
+            </span>
+            {activeShift && (
+              <Link className="button button--primary" to="/pos">
+                {strings.pos.title}
+              </Link>
+            )}
+            <Link className="button button--secondary" to="/orders">
+              {strings.orders.title}
+            </Link>
+            <Link className="button button--secondary" to="/inventory">
+              {strings.inventory.title}
+            </Link>
+            <Link className="button button--secondary" to="/account/password">
+              {strings.auth.passwordChangeTitle}
+            </Link>
+          </>
+        }
+      />
 
       {!activeShift ? (
         <section className="shift-panel" aria-labelledby="open-shift-title">

@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
 import { ErrorState } from '../../shared/components/ErrorState';
+import { PageHeader } from '../../shared/components/PageHeader';
 import { formatDate } from '../../shared/lib/format';
 import { toAppError, type AppError } from '../../shared/lib/errors';
 import { strings } from '../../shared/strings/id';
@@ -92,15 +93,14 @@ export function StaffPage(): JSX.Element {
 
   return (
     <main className="settings-page">
-      <header className="page-heading">
-        <div>
-          <p className="eyebrow">{strings.app.operationTitle}</p>
-          <h1>{strings.staff.title}</h1>
-        </div>
-        <button className="button button--primary" onClick={() => setDialogOpen(true)}>
-          {strings.staff.add}
-        </button>
-      </header>
+      <PageHeader
+        title={strings.staff.title}
+        actions={
+          <button className="button button--primary" onClick={() => setDialogOpen(true)}>
+            {strings.staff.add}
+          </button>
+        }
+      />
       {rows.length === 0 ? (
         <section className="orders-empty" role="status">
           <h2>{strings.staff.empty}</h2>
