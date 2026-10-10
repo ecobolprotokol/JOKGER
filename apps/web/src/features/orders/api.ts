@@ -177,6 +177,22 @@ export async function readOrderDetail(
   };
 }
 
+export async function readOrderDetailByNumber(
+  orderNo: string,
+): Promise<Result<OrderDetail | null>> {
+  if (!supabase) {
+    return { ok: false, error: toAppError({ code: 'SERVER_NOT_CONFIGURED' }) };
+  }
+  const { data, error } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('order_no', orderNo)
+    .maybeSingle();
+  if (error) return { ok: false, error: toAppError(error) };
+  if (!data) return { ok: true, data: null };
+  return readOrderDetail(data.id, false);
+}
+
 export async function changeOrderStatus(
   orderId: string,
   status: OrderStatus,

@@ -27,6 +27,7 @@ export function PaymentVerificationPage() {
   const verifyMutation = useVerifyPayment();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<PendingPayment | null>(null);
+  const [verifyWithNoteTarget, setVerifyWithNoteTarget] = useState<PendingPayment | null>(null);
   const allPayments = payments.data ?? [];
   const selected =
     allPayments.find((payment) => payment.id === selectedId) ?? allPayments[0] ?? null;
@@ -125,7 +126,15 @@ export function PaymentVerificationPage() {
             <section className="verification-detail" aria-labelledby="verification-order">
               <div className="verification-proof">
                 {!selected.proof_path ? (
-                  <p>{strings.paymentVerification.proofMissing}</p>
+                  <div className="verification-proof__missing">
+                    <p>{strings.paymentVerification.proofMissing}</p>
+                    <button
+                      className="button button--secondary"
+                      onClick={() => setVerifyWithNoteTarget(selected)}
+                    >
+                      {strings.paymentVerification.verifyWithNote}
+                    </button>
+                  </div>
                 ) : proof.isPending ? (
                   <p role="status">{strings.app.loading}</p>
                 ) : proof.isError ? (
@@ -225,6 +234,23 @@ export function PaymentVerificationPage() {
             });
             setRejectTarget(null);
             toast.success(strings.paymentVerification.rejected);
+          }}
+        />
+      )}
+      {verifyWithNoteTarget && (
+        <ConfirmAction
+          title={strings.paymentVerification.verifyWithNoteTitle}
+          description={strings.paymentVerification.verifyWithNoteDescription}
+          confirmLabel={strings.paymentVerification.approve}
+          requireReason
+          onConfirm={async (note) => {
+            await verifyMutation.mutateAsync({
+              paymentId: verifyWithNoteTarget.id,
+              approve: true,
+              note,
+            });
+            setVerifyWithNoteTarget(null);
+            toast.success(strings.paymentVerification.approved);
           }}
         />
       )}

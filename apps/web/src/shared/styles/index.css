@@ -715,6 +715,132 @@ label {
   font-size: 24px;
 }
 
+.printer-actions,
+.printer-queue li,
+.printer-queue li > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.printer-queue {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.printer-queue li {
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.printer-queue li > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.printer-queue time,
+.printer-queue span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.audit-entity-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: ui-monospace, monospace;
+  overflow-wrap: anywhere;
+}
+
+.audit-drawer-backdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.audit-drawer {
+  width: min(100%, 520px);
+  height: 100%;
+  overflow: auto;
+  padding: 24px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+}
+
+.audit-drawer header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.audit-drawer h2 {
+  margin: 0;
+}
+.audit-drawer dl {
+  display: grid;
+  gap: 12px;
+}
+.audit-drawer dl > div {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.audit-drawer dt {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.audit-drawer dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+.audit-payload__json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cart-line.is-keyboard-selected {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pos-shortcut-bar {
+  width: min(100% - 32px, 1440px);
+  margin: 12px auto 24px;
+  overflow-x: auto;
+}
+
+.pos-shortcut-bar .keyboard-hint {
+  min-width: max-content;
+}
+
+.shortcut-help {
+  position: fixed;
+  z-index: 25;
+  right: 20px;
+  bottom: 20px;
+  width: min(calc(100% - 32px), 520px);
+  max-height: min(80vh, 620px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.shortcut-help h2 {
+  margin-top: 0;
+}
+
 @media (max-width: 760px) {
   .opname-page {
     padding-top: 22px;

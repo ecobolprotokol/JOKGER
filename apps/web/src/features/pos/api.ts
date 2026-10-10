@@ -9,6 +9,12 @@ const createdOrderSchema = z.object({
   grand_total: z.number().int(),
   status: z.enum(['new', 'processing', 'ready', 'completed', 'cancelled']),
 });
+const submittedPaymentSchema = z.object({
+  id: z.string().uuid(),
+  order_id: z.string().uuid(),
+  status: z.enum(['pending_verification', 'verified', 'rejected']),
+  amount: z.number().int(),
+});
 
 export type CreatedOrder = z.infer<typeof createdOrderSchema>;
 export type OpenBillPayment = CreateOrderInput['payments'][number];
@@ -58,6 +64,57 @@ export async function createOrder(input: CreateOrderInput): Promise<Result<Creat
     return { ok: false, error: toAppError(new Error('Respons pesanan tidak valid.')) };
   }
   return { ok: true, data: parsedOrder.data };
+}
+
+export async function uploadPaymentProof(file: File, orderId: string): Promise<Result<string>> {
+  if (!supabase) return { ok: false, error: toAppError({ code: 'SERVER_NOT_CONFIGURED' }) };
+  const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];
+  const dateParts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta',
+    })
+      .formatToParts(new Date())
+      .map((part) => [part.type, part.value]),
+  );
+  const path = `${dateParts.year}/${dateParts.month}/${dateParts.day}/${orderId}-${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from('payment-proofs').upload(path, file, {
+    cacheControl: '600',
+    contentType: file.type,
+    upsert: false,
+  });
+  if (error) return { ok: false, error: toAppError(error) };
+  return { ok: true, data: path };
+}
+
+export async function submitPayment(input: {
+  clientRef: string;
+  orderId: string;
+  method: 'cash' | 'transfer' | 'ewallet';
+  amount: number;
+  paymentAccountId: string | null;
+  referenceNo: string | null;
+  proofPath: string | null;
+  receivedAmount: number | null;
+}): Promise<Result<z.infer<typeof submittedPaymentSchema>>> {
+  if (!supabase) return { ok: false, error: toAppError({ code: 'SERVER_NOT_CONFIGURED' }) };
+  const { data, error } = await supabase.rpc('submit_payment', {
+    p_client_ref: input.clientRef,
+    p_order_id: input.orderId,
+    p_method: input.method,
+    p_amount: input.amount,
+    p_payment_account_id: input.paymentAccountId,
+    p_reference_no: input.referenceNo,
+    p_proof_path: input.proofPath,
+    p_received_amount: input.receivedAmount,
+  });
+  if (error) return { ok: false, error: toAppError(error) };
+  const parsed = submittedPaymentSchema.safeParse(data);
+  if (!parsed.success)
+    return { ok: false, error: toAppError(new Error('Respons pembayaran tidak valid.')) };
+  return { ok: true, data: parsed.data };
 }
 
 export async function addItemsToOpenBill(

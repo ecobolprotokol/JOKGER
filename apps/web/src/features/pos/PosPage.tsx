@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useMenuCatalog, type MenuItem } from '../menu';
@@ -12,10 +12,16 @@ import { ModifierPicker } from './components/ModifierPicker';
 import { Money } from '../../shared/components/Money';
 import { MoneyField } from '../../shared/components/MoneyField';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
+import { FileProofField } from '../../shared/components/FileProofField';
 import { calculateChange, quickCashAmounts } from '../../shared/lib/money';
 import { useCartStore } from '../../shared/stores/cart';
 import { useConnectionStore } from '../../shared/stores/connection';
 import { strings } from '../../shared/strings/id';
+import { printSavedOrder, reprintOrder } from './printService';
+import { submitPayment, uploadPaymentProof } from './api';
+import { usePosShortcuts } from './usePosShortcuts';
+import { useDeviceStore } from '../../shared/stores/device';
+import { KeyboardHint } from '../../shared/components/KeyboardHint';
 
 function getErrorCode(error: unknown): string | null {
   if (
@@ -46,6 +52,7 @@ export function PosPage() {
   const validateVoucher = useValidateVoucher();
   const cart = useCartStore();
   const online = useConnectionStore((state) => state.online);
+  const shortcutsEnabled = useDeviceStore((state) => state.shortcutsEnabled);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null);
@@ -55,12 +62,106 @@ export function PosPage() {
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | 'ewallet'>('cash');
   const [paymentAccountId, setPaymentAccountId] = useState('');
   const [paymentReference, setPaymentReference] = useState('');
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofError, setProofError] = useState<string | null>(null);
+  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const voucherRef = useRef<HTMLInputElement>(null);
+  const cartPanelRef = useRef<HTMLElement>(null);
   const [voucherInput, setVoucherInput] = useState(cart.voucherCode ?? '');
-  const [createdOrder, setCreatedOrder] = useState<{ orderNo: string; total: number } | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<{
+    id: string;
+    orderNo: string;
+    total: number;
+  } | null>(null);
   const menu = menuQuery.data;
   const settings = settingsQuery.data;
   const subtotal = calculateTotals(cart.lines, 0, 0, 0, 'none').subtotal;
   const voucherPreview = useVoucherPreview(cart.voucherCode, subtotal);
+
+  usePosShortcuts({
+    enabled: shortcutsEnabled,
+    cartFocused: () => Boolean(cartPanelRef.current?.contains(document.activeElement)),
+    focusSearch: () => searchRef.current?.focus(),
+    focusVoucher: () => voucherRef.current?.focus(),
+    selectVisibleItem: (index) => {
+      if (!menu) return;
+      const normalized = search.trim().toLocaleLowerCase('id-ID');
+      const item = menu.items.filter(
+        (entry) =>
+          (!categoryId || entry.category_id === categoryId) &&
+          (!normalized || entry.name.toLocaleLowerCase('id-ID').includes(normalized)),
+      )[index];
+      if (!item || !item.is_available) return;
+      if (item.modifierGroups.length > 0) setModifierItem(item);
+      else
+        cart.addLine({
+          menuItemId: item.id,
+          name: item.name,
+          unitPrice: item.price,
+          modifierOptionIds: [],
+          modifierLabels: [],
+          qty: 1,
+          note: null,
+        });
+    },
+    openPayment: () => {
+      if (cart.lines.length > 0) setPaymentOpen(true);
+    },
+    openBill: () => {
+      if (cart.lines.length > 0) openBill();
+    },
+    moveCartSelection: (direction) => {
+      const currentIndex = cart.lines.findIndex((line) => line.lineId === selectedLineId);
+      const nextIndex = Math.max(
+        0,
+        Math.min(cart.lines.length - 1, (currentIndex < 0 ? 0 : currentIndex) + direction),
+      );
+      const nextLine = cart.lines[nextIndex];
+      if (nextLine) setSelectedLineId(nextLine.lineId);
+      cartPanelRef.current?.focus();
+    },
+    adjustSelectedLine: (amount) => {
+      const line = cart.lines.find((item) => item.lineId === selectedLineId) ?? cart.lines[0];
+      if (!line) return;
+      setSelectedLineId(line.lineId);
+      cart.updateQty(line.lineId, line.qty + amount);
+    },
+    removeSelectedLine: () => {
+      const line = cart.lines.find((item) => item.lineId === selectedLineId);
+      if (!line) return;
+      cart.removeLine(line.lineId);
+      setSelectedLineId(null);
+      toast(strings.pos.removedLine, {
+        action: {
+          label: strings.pos.undo,
+          onClick: () => cart.addLine({ ...line, qty: line.qty }),
+        },
+      });
+    },
+    closeTopOverlay: () => {
+      if (shortcutsOpen) {
+        setShortcutsOpen(false);
+        return true;
+      }
+      if (modifierItem) {
+        setModifierItem(null);
+        return true;
+      }
+      if (paymentOpen) {
+        setPaymentOpen(false);
+        return true;
+      }
+      if (clearConfirmation) {
+        setClearConfirmation(false);
+        return true;
+      }
+      return false;
+    },
+    clearSearch: () => setSearch(''),
+    toggleHelp: () => setShortcutsOpen((current) => !current),
+  });
 
   if (shiftQuery.isSuccess && !shiftQuery.data) {
     return <Navigate to="/shift" replace />;
@@ -157,24 +258,55 @@ export function PosPage() {
           modifier_option_ids: line.modifierOptionIds,
           note: line.note,
         })),
-        payments: [
-          {
-            method: paymentMethod,
-            amount: totals.grandTotal,
-            received_amount: paymentMethod === 'cash' ? cashReceived : null,
-            payment_account_id: paymentMethod === 'cash' ? null : paymentAccountId,
-            reference_no: paymentMethod === 'cash' ? null : paymentReference.trim(),
-            proof_path: null,
-          },
-        ],
+        payments:
+          proofFile && paymentMethod !== 'cash'
+            ? []
+            : [
+                {
+                  method: paymentMethod,
+                  amount: totals.grandTotal,
+                  received_amount: paymentMethod === 'cash' ? cashReceived : null,
+                  payment_account_id: paymentMethod === 'cash' ? null : paymentAccountId,
+                  reference_no: paymentMethod === 'cash' ? null : paymentReference.trim(),
+                  proof_path: null,
+                },
+              ],
       },
       {
-        onSuccess: (order) => {
-          setCreatedOrder({ orderNo: order.order_no, total: order.grand_total });
+        onSuccess: async (order) => {
+          if (paymentMethod !== 'cash') {
+            let proofPath: string | null = null;
+            if (proofFile) {
+              const uploaded = await uploadPaymentProof(proofFile, order.id);
+              if (uploaded.ok) proofPath = uploaded.data;
+              else toast.warning(strings.pos.proofMissingNote);
+            }
+            const paymentResult = await submitPayment({
+              clientRef: crypto.randomUUID(),
+              orderId: order.id,
+              method: paymentMethod,
+              amount: order.grand_total,
+              paymentAccountId,
+              referenceNo: paymentReference.trim(),
+              proofPath,
+              receivedAmount: null,
+            });
+            if (!paymentResult.ok) toast.error(getErrorMessage(paymentResult.error));
+          }
+          setCreatedOrder({ id: order.id, orderNo: order.order_no, total: order.grand_total });
+          void printSavedOrder(order.id, order.order_no).then((result) => {
+            if (result.status === 'queued') {
+              toast.warning(
+                result.droppedOldest ? strings.printer.queueDropped : strings.printer.queued,
+              );
+            }
+          });
           setReceived('');
           setPaymentReference('');
           setPaymentAccountId('');
           setPaymentMethod('cash');
+          setProofFile(null);
+          setProofError(null);
           cart.clear();
         },
         onError: (error: unknown) => {
@@ -292,6 +424,7 @@ export function PosPage() {
             <label className="search-field">
               <span className="visually-hidden">{strings.pos.search}</span>
               <input
+                ref={searchRef}
                 type="search"
                 value={search}
                 placeholder={strings.pos.search}
@@ -351,7 +484,7 @@ export function PosPage() {
           )}
         </section>
 
-        <aside className="cart-panel" aria-labelledby="cart-title">
+        <aside className="cart-panel" ref={cartPanelRef} tabIndex={-1} aria-labelledby="cart-title">
           <div className="cart-panel__heading">
             <h2 id="cart-title">{strings.pos.cart}</h2>
             <span>{cart.lines.reduce((count, line) => count + line.qty, 0)}</span>
@@ -393,6 +526,7 @@ export function PosPage() {
             <label className="compact-field" htmlFor="pos-voucher-code">
               <span>{strings.pos.voucher}</span>
               <input
+                ref={voucherRef}
                 id="pos-voucher-code"
                 maxLength={32}
                 value={voucherInput}
@@ -448,7 +582,13 @@ export function PosPage() {
           ) : (
             <ul className="cart-lines">
               {cart.lines.map((line) => (
-                <li className="cart-line" key={line.lineId}>
+                <li
+                  className={
+                    selectedLineId === line.lineId ? 'cart-line is-keyboard-selected' : 'cart-line'
+                  }
+                  key={line.lineId}
+                  onClick={() => setSelectedLineId(line.lineId)}
+                >
                   <div className="cart-line__description">
                     <strong>{line.name}</strong>
                     {line.modifierLabels.length > 0 && (
@@ -559,6 +699,48 @@ export function PosPage() {
           )}
         </aside>
       </div>
+
+      <div className="pos-shortcut-bar">
+        <KeyboardHint
+          keys={[
+            { key: '/', description: strings.shortcuts.search },
+            { key: '1–9', description: strings.shortcuts.chooseItem },
+            { key: '↑ ↓', description: strings.shortcuts.moveCart },
+            { key: '+ −', description: strings.shortcuts.changeQuantity },
+            { key: 'Delete', description: strings.shortcuts.removeLine },
+            { key: 'F2', description: strings.shortcuts.payment },
+            { key: 'F3', description: strings.shortcuts.openBill },
+            { key: 'F4', description: strings.shortcuts.voucher },
+            { key: '?', description: strings.shortcuts.help },
+          ]}
+        />
+      </div>
+      {shortcutsOpen && (
+        <section
+          className="shortcut-help"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="shortcut-help-title"
+        >
+          <h2 id="shortcut-help-title">{strings.shortcuts.title}</h2>
+          <KeyboardHint
+            keys={[
+              { key: '/', description: strings.shortcuts.search },
+              { key: '1–9', description: strings.shortcuts.chooseItem },
+              { key: '↑ ↓', description: strings.shortcuts.moveCart },
+              { key: '+ −', description: strings.shortcuts.changeQuantity },
+              { key: 'Delete', description: strings.shortcuts.removeLine },
+              { key: 'F2', description: strings.shortcuts.payment },
+              { key: 'F3', description: strings.shortcuts.openBill },
+              { key: 'F4', description: strings.shortcuts.voucher },
+              { key: 'Esc', description: strings.shortcuts.escape },
+            ]}
+          />
+          <button className="button button--secondary" onClick={() => setShortcutsOpen(false)}>
+            {strings.common.cancel}
+          </button>
+        </section>
+      )}
 
       {paymentOpen && (
         <section
@@ -685,6 +867,18 @@ export function PosPage() {
                   }
                 />
               </label>
+              <FileProofField
+                file={proofFile}
+                onChange={(file, error) => {
+                  setProofFile(file);
+                  setProofError(error);
+                }}
+              />
+              {proofError && (
+                <p className="form-alert" role="alert">
+                  {proofError}
+                </p>
+              )}
               {accountsQuery.isError && (
                 <p className="form-alert" role="alert">
                   {getErrorMessage(accountsQuery.error)}
@@ -742,6 +936,19 @@ export function PosPage() {
           <h2>{strings.pos.orderNumber}</h2>
           <strong className="order-number">{createdOrder.orderNo}</strong>
           <Money value={createdOrder.total} />
+          <button
+            className="button button--secondary"
+            onClick={() =>
+              void reprintOrder(createdOrder.id).catch(() =>
+                toast.error(strings.printer.printError),
+              )
+            }
+          >
+            {strings.orderDetail.reprint}
+          </button>
+          <Link className="button button--secondary" to={`/orders/${createdOrder.id}`}>
+            {strings.openBill.viewOrder}
+          </Link>
           <button
             className="button button--primary"
             autoFocus

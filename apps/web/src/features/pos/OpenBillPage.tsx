@@ -6,6 +6,7 @@ import { useActivePaymentAccounts } from '../payment-accounts';
 import { useActiveShift } from '../shift';
 import { useOrderDetail } from '../orders';
 import { ConfirmAction } from '../../shared/components/ConfirmAction';
+import { FileProofField } from '../../shared/components/FileProofField';
 import { Money } from '../../shared/components/Money';
 import { MoneyField } from '../../shared/components/MoneyField';
 import { ModifierPicker } from './components/ModifierPicker';
@@ -15,6 +16,8 @@ import type { CartLine } from '../../shared/stores/cart';
 import { useConnectionStore } from '../../shared/stores/connection';
 import { strings } from '../../shared/strings/id';
 import { formatDateTime } from '../../shared/lib/format';
+import { printSavedOrder } from './printService';
+import { uploadPaymentProof } from './api';
 
 type PaymentMethod = 'cash' | 'transfer' | 'ewallet';
 type PaymentMode = PaymentMethod | 'split';
@@ -25,6 +28,7 @@ type SplitPaymentLine = {
   receivedAmount: string;
   accountId: string;
   referenceNo: string;
+  proofFile: File | null;
 };
 
 function newPaymentLine(): SplitPaymentLine {
@@ -35,6 +39,7 @@ function newPaymentLine(): SplitPaymentLine {
     receivedAmount: '',
     accountId: '',
     referenceNo: '',
+    proofFile: null,
   };
 }
 
@@ -71,6 +76,8 @@ export function OpenBillPage() {
   const [receivedAmount, setReceivedAmount] = useState('');
   const [paymentAccountId, setPaymentAccountId] = useState('');
   const [referenceNo, setReferenceNo] = useState('');
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofError, setProofError] = useState<string | null>(null);
   const [voucherCode, setVoucherCode] = useState('');
   const [splitPayments, setSplitPayments] = useState<SplitPaymentLine[]>([
     newPaymentLine(),
@@ -204,7 +211,7 @@ export function OpenBillPage() {
     );
   }
 
-  function paymentPayload() {
+  function paymentPayload(proofPaths: (string | null)[] = []) {
     if (!order) return [];
     if (paymentMode !== 'split') {
       return [
@@ -214,7 +221,7 @@ export function OpenBillPage() {
           received_amount: paymentMode === 'cash' ? Number(receivedAmount) : null,
           payment_account_id: paymentMode === 'cash' ? null : paymentAccountId,
           reference_no: paymentMode === 'cash' ? null : referenceNo.trim(),
-          proof_path: null,
+          proof_path: proofPaths[0] ?? null,
         },
       ];
     }
@@ -224,20 +231,42 @@ export function OpenBillPage() {
       received_amount: line.method === 'cash' ? Number(line.receivedAmount) : null,
       payment_account_id: line.method === 'cash' ? null : line.accountId,
       reference_no: line.method === 'cash' ? null : line.referenceNo.trim(),
-      proof_path: null,
+      proof_path: proofPaths[splitPayments.indexOf(line)] ?? null,
     }));
   }
 
-  function closeBill(): void {
-    if (!editable || !paymentRowsValid || closeMutation.isPending) return;
+  async function closeBill(): Promise<void> {
+    if (!order || !editable || !paymentRowsValid || closeMutation.isPending) return;
+    const closedOrderId = order.id;
+    const closedOrderNo = order.order_no;
     const clientRef = closeClientRef ?? crypto.randomUUID();
     setCloseClientRef(clientRef);
+    const proofFiles =
+      paymentMode === 'split' ? splitPayments.map((line) => line.proofFile) : [proofFile];
+    const proofPaths = await Promise.all(
+      proofFiles.map(async (file) => {
+        if (!file) return null;
+        const result = await uploadPaymentProof(file, closedOrderId);
+        if (!result.ok) {
+          toast.warning(strings.pos.proofMissingNote);
+          return null;
+        }
+        return result.data;
+      }),
+    );
     closeMutation.mutate(
-      { clientRef, payments: paymentPayload(), voucherCode: voucherCode.trim() || null },
+      { clientRef, payments: paymentPayload(proofPaths), voucherCode: voucherCode.trim() || null },
       {
         onSuccess: () => {
           toast.success(strings.openBill.closed);
           setCloseClientRef(null);
+          void printSavedOrder(closedOrderId, closedOrderNo).then((result) => {
+            if (result.status === 'queued') {
+              toast.warning(
+                result.droppedOldest ? strings.printer.queueDropped : strings.printer.queued,
+              );
+            }
+          });
         },
         onError: (error) => {
           if (
@@ -463,6 +492,18 @@ export function OpenBillPage() {
                         ))}
                     </select>
                   </label>
+                  <FileProofField
+                    file={proofFile}
+                    onChange={(file, error) => {
+                      setProofFile(file);
+                      setProofError(error);
+                    }}
+                  />
+                  {proofError && (
+                    <p className="form-alert" role="alert">
+                      {proofError}
+                    </p>
+                  )}
                   <label className="field">
                     <span>{strings.pos.paymentReference}</span>
                     <input
@@ -537,6 +578,10 @@ export function OpenBillPage() {
                                 referenceNo: event.target.value.replace(/[^A-Za-z0-9]/g, ''),
                               })
                             }
+                          />
+                          <FileProofField
+                            file={line.proofFile}
+                            onChange={(file) => updateSplitLine(line.id, { proofFile: file })}
                           />
                         </>
                       )}

@@ -78,6 +78,7 @@ export function DataTable<T extends Record<string, unknown>>({
     if (selection) {
       const newSelected = new Set(selection.selectedIds);
       if (newSelected.has(id)) {
+        // Set ini hanya menyimpan pilihan baris sementara di antarmuka.
         // eslint-disable-next-line no-restricted-syntax
         newSelected.delete(id);
       } else {

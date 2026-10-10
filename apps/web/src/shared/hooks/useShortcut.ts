@@ -36,6 +36,7 @@ export function useShortcut(keys: string[], handler: ShortcutHandler, descriptio
         const index = entries.indexOf(entry);
         if (index !== -1) entries.splice(index, 1);
         if (entries.length === 0) {
+          // Map ini hanya menyimpan registrasi pintasan lokal, bukan data operasional.
           // eslint-disable-next-line no-restricted-syntax
           registeredShortcuts.delete(id);
         }
@@ -55,7 +56,10 @@ function handleKeyDown(event: KeyboardEvent): void {
   for (const entries of registeredShortcuts.values()) {
     for (const entry of entries) {
       if (keysMatch(event, entry.keys)) {
-        if (isInput && !entry.keys.some((k) => ['ctrl', 'shift', 'alt', 'meta'].includes(k))) {
+        const allowedWhileTyping = entry.keys.some((key) =>
+          ['F2', 'F3', 'F4', 'Escape'].includes(key),
+        );
+        if (isInput && !allowedWhileTyping) {
           continue;
         }
         event.preventDefault();

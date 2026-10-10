@@ -53,6 +53,12 @@ const StaffPage = lazy(() =>
 const BrandingPage = lazy(() =>
   import('../features/settings/BrandingPage').then((module) => ({ default: module.BrandingPage })),
 );
+const PrinterPage = lazy(() =>
+  import('../features/settings/PrinterPage').then((module) => ({ default: module.PrinterPage })),
+);
+const AuditPage = lazy(() =>
+  import('../features/audit/AuditPage').then((module) => ({ default: module.AuditPage })),
+);
 const MenuPage = lazy(() =>
   import('../features/menu/MenuPage').then((module) => ({ default: module.MenuPage })),
 );
@@ -142,6 +148,15 @@ export const router = createBrowserRouter([
       { path: 'inventory/opname', element: suspended(<OpnameListPage />) },
       { path: 'inventory/opname/:opnameId', element: suspended(<OpnameDetailPage />) },
       { path: 'reports', element: suspended(<ReportsPage />) },
+      { path: 'settings/printer', element: suspended(<PrinterPage />) },
+      {
+        path: 'audit',
+        element: suspended(
+          <RequireRole role="super_admin">
+            <AuditPage />
+          </RequireRole>,
+        ),
+      },
       {
         path: 'settings',
         element: suspended(

@@ -50,6 +50,7 @@ export interface ReceiptData {
   cashierName: string;
   receiptHeader?: string;
   receiptFooter?: string;
+  reprint?: boolean;
 }
 
 export interface ReceiptItem {
@@ -100,6 +101,12 @@ export function encodeReceipt(data: ReceiptData, paperWidthMm: 58 | 80 = 58): Ui
 
   encoder.initialize();
   encoder.setAlignment('center');
+
+  if (data.reprint) {
+    encoder.setTextSize(1, 1);
+    encoder.write('REPRINT');
+    encoder.feed(1);
+  }
 
   if (data.receiptHeader) {
     encoder.setTextSize(1, 1);

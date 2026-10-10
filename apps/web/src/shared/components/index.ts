@@ -1,4 +1,5 @@
 export { Money } from './Money';
+export { FileProofField, validateProofFile } from './FileProofField';
 export { MoneyField } from './MoneyField';
 export { ConfirmAction } from './ConfirmAction';
 export { StatusBadge } from './StatusBadge';
