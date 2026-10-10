@@ -1,5 +1,6 @@
 import { useBlocker } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
+import { strings } from '../strings/id';
 
 export function useUnsavedChanges(isDirty: boolean): void {
   const isDirtyRef = useRef(isDirty);
@@ -10,19 +11,18 @@ export function useUnsavedChanges(isDirty: boolean): void {
   );
 
   useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-        event.preventDefault();
-        event.returnValue = '';
-      };
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }
-  }, [blocker.state]);
+    if (blocker.state !== 'blocked') return;
+    if (window.confirm(strings.common.unsavedChanges)) blocker.proceed();
+    else blocker.reset();
+  }, [blocker]);
 
   useEffect(() => {
-    if (blocker.state === 'blocked') {
-      blocker.proceed();
-    }
-  }, [blocker]);
+    if (!isDirty) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 }

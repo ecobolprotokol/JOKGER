@@ -30,6 +30,16 @@ const InventoryPage = lazy(() =>
     default: module.InventoryPage,
   })),
 );
+const OpnameListPage = lazy(() =>
+  import('../features/opname/OpnameListPage').then((module) => ({
+    default: module.OpnameListPage,
+  })),
+);
+const OpnameDetailPage = lazy(() =>
+  import('../features/opname/OpnameDetailPage').then((module) => ({
+    default: module.OpnameDetailPage,
+  })),
+);
 const MenuPage = lazy(() =>
   import('../features/menu/MenuPage').then((module) => ({ default: module.MenuPage })),
 );
@@ -116,6 +126,8 @@ export const router = createBrowserRouter([
       { path: 'orders/:orderId', element: suspended(<OrderDetailPage />) },
       { path: 'history', element: suspended(<HistoryPage />) },
       { path: 'inventory', element: suspended(<InventoryPage />) },
+      { path: 'inventory/opname', element: suspended(<OpnameListPage />) },
+      { path: 'inventory/opname/:opnameId', element: suspended(<OpnameDetailPage />) },
       { path: 'menu', element: suspended(<MenuPage />) },
       { path: 'vouchers', element: suspended(<VouchersPage />) },
       { path: 'payment-verification', element: suspended(<PaymentVerificationPage />) },
