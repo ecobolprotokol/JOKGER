@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=20 <21"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "corepack pnpm@9.15.9 --filter @jokger/web dev",

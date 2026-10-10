@@ -69,7 +69,7 @@ Sistem Point of Sale (POS) untuk restoran/kafe modern, dibangun dengan React 18,
 
 | Lapisan                | Teknologi                                                   |
 | ---------------------- | ----------------------------------------------------------- |
-| **Runtime**            | Node.js 20 LTS                                              |
+| **Runtime**            | Node.js 24 LTS                                              |
 | **Package Manager**    | pnpm 9                                                      |
 | **Language**           | TypeScript 5.5+ (strict mode)                               |
 | **Frontend**           | React 18.3, Vite 6.4.3+, React Router 6.28+                 |
@@ -77,7 +77,7 @@ Sistem Point of Sale (POS) untuk restoran/kafe modern, dibangun dengan React 18,
 | **Forms & Validation** | React Hook Form 7, Zod 3.23+                                |
 | **Styling**            | Tailwind CSS 3.4, shadcn/ui (Radix UI)                      |
 | **Backend**            | Supabase (PostgreSQL 15+, Auth, Storage, Realtime)          |
-| **Serverless**         | Vercel Functions (Node.js 20)                               |
+| **Serverless**         | Vercel Functions (Node.js 24)                               |
 | **Hosting**            | Vercel                                                      |
 | **Error Tracking**     | Sentry                                                      |
 | **Testing**            | Vitest 4.0.18+, Playwright, pgTAP                           |
@@ -85,7 +85,7 @@ Sistem Point of Sale (POS) untuk restoran/kafe modern, dibangun dengan React 18,
 
 ## Prasyarat
 
-- Node.js 20 (gunakan `.nvmrc`)
+- Node.js 24 (gunakan `.nvmrc`)
 - pnpm 9.15.9 (`corepack enable`)
 - Supabase CLI (`brew install supabase/tap/supabase` atau `npm i -g supabase`)
 - Git
@@ -271,7 +271,7 @@ Output ada di `apps/web/dist/`. Build menjalankan `tsc -b` lalu `vite build`.
 - Install: `pnpm install --frozen-lockfile`
 - Build: `pnpm --filter @jokger/web build`
 - Output: `apps/web/dist`
-- Serverless functions: `api/**/*.ts` (Node.js 20)
+- Serverless functions: `api/**/*.ts` (Node.js 24)
 - SPA rewrite ke `index.html`
 - Security headers (CSP, HSTS, dll.)
 

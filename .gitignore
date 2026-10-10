@@ -13,3 +13,5 @@ apps/web/tsconfig.tsbuildinfo
 supabase/.temp/
 apps/web/test-results/
 apps/web/playwright-report/
+.vercel
+.env*
